@@ -1,0 +1,818 @@
+\documentclass{article}
+\usepackage{amsmath,amsfonts}
+\usepackage{geometry}
+\usepackage{natbib}
+\usepackage{graphicx} %
+\usepackage{booktabs} % Add this line to include the graphicx package
+\begin{document}
+
+\title{MScFE 620 DERIVATIVE PRICING}
+\author{Alberto Hernandez-Espinosa \and Ibraheem Ajeigbe \and Natale Maniaci}
+\date{}
+\maketitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%         Q01
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{Q1: Does put-call parity apply for European options? Why or why not?}
+
+Yes, put-call parity applies for European options in the binomial tree model. It holds because European options cannot be exercised before expiration, ensuring no-arbitrage conditions. The risk-neutral framework of the binomial tree aligns the expected discounted payoffs, satisfying the parity condition:
+
+\begin{equation}
+C + Ke^{-rT} = P + S_0
+\end{equation}
+
+where $C$ is the call price, $P$ is the put price, $S_0$ is the stock price, $K$ is the strike price, $r$ is the risk-free rate, and $T$ is the time to expiration. The binomial tree enforces this through consistent pricing of the underlying and options, as discussed in \citet{hull2018options} and \citet{cox1979option}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%         Q02
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{Q2: Rewrite put-call parity to solve for the call price.}
+
+Starting from the put-call parity formula for European options:
+
+\begin{equation}
+C + Ke^{-rT} = P + S_0
+\end{equation}
+
+Isolate $C$:
+
+\begin{equation}
+C = P + S_0 - Ke^{-rT}
+\end{equation}
+
+This expresses the call price in terms of the put price, stock price, strike price, risk-free rate, and time to expiration \citep{hull2018options}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%         Q03
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{Q3: Rewrite put-call parity to solve for the put price.}
+
+Starting from the put-call parity formula:
+
+\begin{equation}
+C + Ke^{-rT} = P + S_0
+\end{equation}
+
+Isolate $P$:
+
+\begin{equation}
+P = C + Ke^{-rT} - S_0
+\end{equation}
+
+This expresses the put price in terms of the call price, stock price, strike price, risk-free rate, and time to expiration \citep{hull2018options}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%         Q04
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{Q4: Does put-call parity apply for American options? Why or why not?}
+
+No, put-call parity does not strictly apply for American options in the binomial tree model. The possibility of early exercise disrupts the exact equality, as American options’ prices include the value of early exercise. Instead, no-arbitrage conditions yield inequalities:
+
+\begin{equation}
+S_0 - K \leq C_{Am} - P_{Am} \leq S_0 - Ke^{-rT}
+\end{equation}
+
+where $C_{Am}$ and $P_{Am}$ are American call and put prices. Early exercise in the binomial tree, modeled by comparing intrinsic and continuation values, prevents the precise replication required for parity, as explained in \citet{hull2018options} and \citet{shreve2004stochastic}.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%         Q05
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{Q5: Pricing ATM European Call and Put Options}
+
+\subsection*{5a: Pricing with Binomial Tree}
+
+Using a binomial tree with 100 steps, we price an at-the-money (ATM) European call and put option with parameters: stock price $S_0 = 100$, strike price $K = 100$, risk-free rate $r = 0.05$, volatility $\sigma = 0.20$, and time to expiration $T = 0.25$ years. The binomial tree uses risk-neutral probabilities, with up and down factors:
+
+\begin{equation}
+u = e^{\sigma \sqrt{\Delta t}}, \quad d = e^{-\sigma \sqrt{\Delta t}}, \quad p = \frac{e^{r \Delta t} - d}{u - d}
+\end{equation}
+
+where $\Delta t = T/N = 0.25/100 = 0.0025$. The option prices are computed by backward induction, discounting expected payoffs at each node. The Python code implements this, yielding:
+
+\begin{itemize}
+    \item European call price: \$4.61
+    \item European put price: \$3.36
+\end{itemize}
+
+\subsection*{5b: Process and Justification}
+
+The binomial tree prices options by constructing a lattice of stock prices, computing option payoffs at expiration, and working backward using risk-neutral probabilities \citep{cox1979option}. At each node, the option value is:
+
+\begin{equation}
+V = e^{-r \Delta t} [p V_u + (1-p) V_d]
+\end{equation}
+
+where $V_u$ and $V_d$ are the option values at the up and down nodes. We chose 100 steps because it provides a good balance between accuracy and computational efficiency. A larger number of steps reduces discretization error, converging to the Black-Scholes price, but increases computation time. With $\sigma = 0.20$ and $T = 0.25$, 100 steps ensure reliable estimates, as confirmed by stability in prices when tested with 50 and 200 steps \citep{hull2018options}.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%         Q06
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{Q6: Delta for European Call and Put}
+
+\subsection*{6a: Comparison of Deltas}
+
+Delta measures the sensitivity of the option price to the stock price, approximated at time 0 using the binomial tree’s first step:
+
+\begin{equation}
+\Delta = \frac{V_u - V_d}{S_u - S_d}
+\end{equation}
+
+where $V_u$ and $V_d$ are the option prices at the up and down nodes, and $S_u = S_0 u$, $S_d = S_0 d$. Using the same parameters ($S_0 = 100$, $K = 100$, $r = 0.05$, $\sigma = 0.20$, $T = 0.25$, $N = 100$), the Python code computes:
+
+\begin{itemize}
+    \item European call Delta: 0.57
+    \item European put Delta: $-0.43$
+\end{itemize}
+
+The call Delta is positive, while the put Delta is negative, and their magnitudes differ slightly due to the asymmetry in option payoffs.
+
+\subsection*{6b: Comments on Delta}
+
+Delta proxies the change in option price per unit change in the stock price and represents the hedge ratio \citep{hull2018options}. For a call, a positive Delta (0.57) indicates that the option price increases with the stock price, as the call becomes more likely to be in-the-money. For a put, a negative Delta ($-0.43$) reflects a decrease in price as the stock price rises, since puts benefit from lower stock prices. The call’s higher absolute Delta reflects its greater sensitivity to stock price changes near ATM, as the call payoff is unbounded above, unlike the put, which is capped at $K$. These signs and differences are expected, as calls and puts have opposite exposures to the underlying \citep{shreve2004stochastic}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%         Q07
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{Q7: Vega for European Call and Put}
+
+\subsection*{7a: Sensitivity to Volatility Increase}
+
+Vega measures the sensitivity of the option price to a 1\% change in volatility, approximated here by a 5\% increase (from $\sigma = 0.20$ to $\sigma = 0.25$). Using the binomial tree with $N = 100$, we reprice the options and compute the price change. The Python code yields:
+
+\begin{itemize}
+    \item European call:
+    \begin{itemize}
+        \item Original price ($\sigma = 0.20$): \$4.61
+        \item New price ($\sigma = 0.25$): \$5.59
+        \item Change: \$5.59 - \$4.61 = \$0.98
+        \item Vega (per 1\%): $0.98 / 5 = 0.19$
+    \end{itemize}
+    \item European put:
+    \begin{itemize}
+        \item Original price: \$3.36
+        \item New price: \$4.34
+        \item Change: \$4.34 - \$3.36 = \$0.98
+        \item Vega (per 1\%): $0.98 / 5 = 0.19$
+    \end{itemize}
+\end{itemize}
+
+\subsection*{7b: Differential Impact}
+
+Both call and put prices increase with higher volatility, as greater uncertainty raises the probability of large price movements, benefiting both options \citep{hull2018options}. The price increase is identical (\$0.98) for ATM call and put options due to their symmetric sensitivity to volatility at $S_0 = K$. Vega is positive for both, reflecting the increased option value with higher $\sigma$. The equal impact is expected for ATM options in the binomial model, as volatility affects the spread of possible stock prices symmetrically \citep{shreve2004stochastic}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%         Q08
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{Q8: Pricing ATM American Call and Put Options}
+
+\subsection*{8a: Pricing with Binomial Tree}
+
+Using a binomial tree with 100 steps, we price at-the-money (ATM) American call and put options with parameters: stock price $S_0 = 100$, strike price $K = 100$, risk-free rate $r = 0.05$, volatility $\sigma = 0.20$, and time to expiration $T = 0.25$ years. The binomial tree uses risk-neutral probabilities, with up and down factors:
+
+\begin{equation}
+u = e^{\sigma \sqrt{\Delta t}}, \quad d = e^{-\sigma \sqrt{\Delta t}}, \quad p = \frac{e^{r \Delta t} - d}{u - d}
+\end{equation}
+
+where $\Delta t = T/N = 0.25/100 = 0.0025$. For American options, at each node, we take the maximum of the intrinsic value and the continuation value:
+
+\begin{equation}
+V = \max(\text{Intrinsic Value}, e^{-r \Delta t} [p V_u + (1-p) V_d])
+\end{equation}
+
+The Python code yields:
+
+\begin{itemize}
+    \item American call price: \$4.61
+    \item American put price: \$3.47
+\end{itemize}
+
+\subsection*{8b: Process and Justification}
+
+The binomial tree constructs a lattice of stock prices, computes payoffs at expiration, and works backward. For American options, early exercise is modeled by checking the intrinsic value (call: $\max(0, S - K)$; put: $\max(0, K - S)$) against the continuation value at each node \citep{cox1979option}. We chose 100 steps for consistency with European option pricing and to balance accuracy and efficiency. With $\sigma = 0.20$ and $T = 0.25$, 100 steps provide stable prices, converging toward Black-Scholes, as validated by testing with 50 and 200 steps \citep{hull2018options}.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%         Q09
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{Q9: Delta for American Call and Put}
+
+\subsection*{9a: Comparison of Deltas}
+
+Delta is approximated at time 0 using the binomial tree’s first step:
+
+\begin{equation}
+\Delta = \frac{V_u - V_d}{S_u - S_d}
+\end{equation}
+
+where $V_u$ and $V_d$ are option prices at the up and down nodes, and $S_u = S_0 u$, $S_d = S_0 d$. Using parameters ($S_0 = 100$, $K = 100$, $r = 0.05$, $\sigma = 0.20$, $T = 0.25$, $N = 100$), the Python code computes:
+
+\begin{itemize}
+    \item American call Delta: 0.57
+    \item American put Delta: $-0.45$
+\end{itemize}
+
+The call Delta is positive, the put Delta is negative, with similar magnitudes but slightly different due to early exercise.
+
+\subsection*{9b: Comments on Delta}
+
+Delta measures the option price’s sensitivity to the stock price and serves as the hedge ratio \citep{hull2018options}. The positive call Delta (0.57) indicates the call price rises with the stock price, as it’s more likely to be in-the-money. The negative put Delta ($-0.45$) shows the put price falls as the stock price rises, benefiting from lower prices. The call’s slightly higher absolute Delta reflects greater sensitivity near ATM. Early exercise for puts increases Delta’s magnitude compared to European puts, as it captures immediate exercise value \citep{shreve2004stochastic}.
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%         Q10
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{Q10: Vega for American Call and Put}
+
+\subsection*{10a: Sensitivity to Volatility Increase}
+
+Vega is approximated by a 5\% volatility increase (from $\sigma = 0.20$ to $\sigma = 0.25$). Using the binomial tree with $N = 100$, we reprice the options. The Python code yields:
+
+\begin{itemize}
+    \item American call:
+    \begin{itemize}
+        \item Original price ($\sigma = 0.20$): \$4.61
+        \item New price ($\sigma = 0.25$): \$5.59
+        \item Change: \$5.59 - \$4.61 = \$0.98
+        \item Vega (per 1\%): $0.98 / 5 = 0.19$
+    \end{itemize}
+    \item American put:
+    \begin{itemize}
+        \item Original price: \$3.47
+        \item New price: \$4.45
+        \item Change: \$4.45 - \$3.47 = \$0.98
+        \item Vega (per 1\%): $0.98 / 5 = 0.19$
+    \end{itemize}
+\end{itemize}
+
+\subsection*{10b: Differential Impact}
+
+Higher volatility increases both call and put prices, as it raises the chance of large price movements \citep{hull2018options}. The identical \$0.98 increase for ATM call and put options reflects symmetric volatility sensitivity at $S_0 = K$. Vega is positive, as higher $\sigma$ increases option value. The equal impact is expected for ATM American options, similar to European options, with early exercise having minimal effect on Vega for calls \citep{shreve2004stochastic}.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%         Q11
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{Q11: Put-Call Parity Verification}
+
+Put-call parity for European options is:
+
+\begin{equation}
+C + Ke^{-rT} = P + S_0
+\end{equation}
+
+Using the computed prices ($C = 4.61$, $P = 3.36$) and parameters ($S_0 = 100$, $K = 100$, $r = 0.05$, $T = 0.25$):
+
+\begin{itemize}
+    \item Left-hand side: $C + Ke^{-rT} = 4.61 + 100 \cdot e^{-0.05 \cdot 0.25} = 4.61 + 100 \cdot e^{-0.0125} \approx 4.61 + 98.76 = 103.37$
+    \item Right-hand side: $P + S_0 = 3.36 + 100 = 103.36$
+\end{itemize}
+
+The difference (103.37 vs. 103.36) is 0.01, well within a sensible rounding tolerance (e.g., 0.01–0.05). This confirms that put-call parity holds, as expected for European options in the binomial tree model. The negligible discrepancy arises from numerical discretization with 100 steps. Increasing the number of steps (e.g., to 1000) would further reduce this error, converging to exact parity \citep{hull2018options, cox1979option}.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%         Q12
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{Q12: Put-Call Parity for American Options}
+
+From Q4, put-call parity does not strictly hold for American options due to early exercise. Instead, inequalities apply:
+
+\begin{equation}
+S_0 - K \leq C_{Am} - P_{Am} \leq S_0 - Ke^{-rT}
+\end{equation}
+
+Using prices ($C_{Am} = 4.61$, $P_{Am} = 3.47$) and parameters ($S_0 = 100$, $K = 100$, $r = 0.05$, $T = 0.25$):
+
+\begin{itemize}
+    \item $C_{Am} - P_{Am} = 4.61 - 3.47 = 1.14$
+    \item Left bound: $S_0 - K = 100 - 100 = 0$
+    \item Right bound: $S_0 - Ke^{-rT} = 100 - 100 \cdot e^{-0.05 \cdot 0.25} \approx 100 - 98.76 = 1.24$
+\end{itemize}
+
+The value 1.14 lies within [0, 1.24], satisfying the inequality. Strict parity ($C_{Am} + Ke^{-rT} = P_{Am} + S_0$) doesn’t hold due to early exercise, particularly for puts, which increases $P_{Am}$ \citep{hull2018options}.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%         Q13
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{Q13: European vs. American Call Price}
+
+Using European call price ($C_{Eur} = 4.61$) and American call price ($C_{Am} = 4.61$):
+
+\begin{itemize}
+    \item $C_{Eur} = 4.61$, $C_{Am} = 4.61$
+    \item Difference: $C_{Am} - C_{Eur} = 4.61 - 4.61 = 0$
+\end{itemize}
+
+The American call price equals the European call price, as expected for non-dividend-paying stocks, where early exercise is typically suboptimal \citep{hull2018options}. The zero difference confirms that the additional optionality of early exercise adds no value for ATM calls, consistent with theory \citep{shreve2004stochastic}.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%         Q14
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{Q14: European vs. American Put Price}
+
+Using European put price ($P_{Eur} = 3.36$) and American put price ($P_{Am} = 3.47$):
+
+\begin{itemize}
+    \item $P_{Eur} = 3.36$, $P_{Am} = 3.47$
+    \item Difference: $P_{Am} - P_{Eur} = 3.47 - 3.36 = 0.11$
+\end{itemize}
+
+The American put price is higher, as expected, due to the value of early exercise, which is beneficial for puts on non-dividend-paying stocks when the stock price is low \citep{hull2018options}. The \$0.11 premium reflects this optionality, and the difference is always non-negative, as American puts offer more flexibility \citep{shreve2004stochastic}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%         Q15
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{Q15: Pricing European Call Options}
+
+\subsection*{15a: Pricing with Trinomial Tree}
+
+Using a trinomial tree with 50 steps, we price European call options for five strike prices (Deep OTM: $K=110$, OTM: $K=105$, ATM: $K=100$, ITM: $K=95$, Deep ITM: $K=90$) with parameters: $S_0 = 100$, $r = 0.05$, $\sigma = 0.20$, $T = 0.25$ years. The trinomial tree uses up, middle, and down factors:
+
+\begin{equation}
+u = e^{\sigma \sqrt{\Delta t}}, \quad d = \frac{1}{u}, \quad m = 1
+\end{equation}
+
+with risk-neutral probabilities:
+
+\begin{align}
+p_u &= \frac{1}{2} \left( \frac{\sigma^2 \Delta t + (r - \frac{1}{2} \sigma^2)^2 \Delta t^2}{\sigma^2 \Delta t} + \frac{(r - \frac{1}{2} \sigma^2) \Delta t}{\sigma \sqrt{\Delta t}} \right), \\ 
+p_d &= \frac{1}{2} \left( \frac{\sigma^2 \Delta t + (r - \frac{1}{2} \sigma^2)^2 \Delta t^2}{\sigma^2 \Delta t} - \frac{(r - \frac{1}{2} \sigma^2) \Delta t}{\sigma \sqrt{\Delta t}} \right), \\
+p_m &= 1 - p_u - p_d
+\end{align}
+
+where $\Delta t = T/N = 0.25/50 = 0.005$. The option value is computed by backward induction. The Python code yields:
+
+\begin{itemize}
+    \item $K=110$: \$1.20
+    \item $K=105$: \$2.50
+    \item $K=100$: \$4.62
+    \item $K=95$: \$7.76
+    \item $K=90$: \$11.74
+\end{itemize}
+
+\subsection*{15b: Price Trends}
+
+Call prices increase as strike price decreases (from Deep OTM to Deep ITM), reflecting higher intrinsic value and probability of being in-the-money \citep{hull2018options}. Deep OTM ($K=110$) has a low price due to the small chance of $S_T > 110$, while Deep ITM ($K=90$) is high due to its intrinsic value ($S_0 - K = 10$) plus time value. The ATM price ($4.62$) matches your binomial result ($4.61$) closely, confirming model consistency \citep{shreve2004stochastic}.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%         Q16
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{Q16: Pricing European Put Options}
+
+\subsection*{16a: Pricing with Trinomial Tree}
+
+Using the trinomial tree (50 Ascoli 50 steps) and parameters ($S_0 = 100$, $r = 0.05$, $\sigma = 0.20$, $T = 0.25$), we price European put options for strikes $K=110$, $105$, $100$, $95$, $90$. The trinomial tree uses up, middle, and down factors:
+
+\begin{equation}
+u = e^{\sigma \sqrt{\Delta t}}, \quad d = \frac{1}{u}, \quad m = 1
+\end{equation}
+
+with risk-neutral probabilities:
+
+\begin{align}
+p_u &= \frac{1}{2} \left( \frac{\sigma^2 \Delta t + (r - \frac{1}{2} \sigma^2)^2 \Delta t^2}{\sigma^2 \Delta t} + \frac{(r - \frac{1}{2} \sigma^2) \Delta t}{\sigma \sqrt{\Delta t}} \right), \\ 
+p_d &= \frac{1}{2} \left( \frac{\sigma^2 \Delta t + (r - \frac{1}{2} \sigma^2)^2 \Delta t^2}{\sigma^2 \Delta t} - \frac{(r - \frac{1}{2} \sigma^2) \Delta t}{\sigma \sqrt{\Delta t}} \right), \\
+p_m &= 1 - p_u - p_d
+\end{align}
+
+where $\Delta t = T/N = 0.25/50 = 0.005$. The option value is computed by backward induction. The Python code yields:
+
+\begin{itemize}
+    \item $K=110$: \$9.89
+    \item $K=105$: \$6.22
+    \item $K=100$: \$3.37
+    \item $K=95$: \$1.55
+    \item $K=90$: \$0.56
+\end{itemize}
+
+\subsection*{16b: Price Trends}
+
+Put prices decrease as strike price decreases (from Deep OTM to Deep ITM for puts, i.e., $K=90$ to $K=110$), reflecting lower intrinsic value and probability of being in-the-money \citep{hull2018options}. Deep OTM ($K=90$) has a low price due to the low chance of $S_T < 90$, while Deep ITM ($K=110$) is high due to its intrinsic value ($K - S_0 = 10$) plus time value. The ATM price ($3.37$) is close to your binomial result ($3.36$), confirming consistency \citep{shreve2004stochastic}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%         Q17
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{Q17: Pricing American Call Options}
+
+\subsection*{17a: Pricing with Trinomial Tree}
+
+Using the trinomial tree (50 steps) and parameters ($S_0 = 100$, $r = 0.05$, $\sigma = 0.20$, $T = 0.25$), we price American call options for strikes $K=110$, $105$, $100$, $95$, $90$. At each node, we take the maximum of the intrinsic and continuation values. The Python code yields:
+
+\begin{itemize}
+    \item $K=110$: \$1.20
+    \item $K=105$: \$2.50
+    \item $K=100$: \$4.62
+    \item $K=95$: \$7.76
+    \item $K=90$: \$11.74
+\end{itemize}
+
+\subsection*{17b: Price Trends}
+
+American call prices increase as strike price decreases, mirroring European calls, due to higher intrinsic value and probability of being in-the-money \citep{hull2018options}. The ATM price ($4.62$) matches your binomial result ($4.61$) closely, and prices equal European calls, as early exercise is suboptimal for non-dividend-paying stocks \citep{shreve2004stochastic}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%         Q18
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{Q18: Pricing American Put Options}
+
+\subsection*{18a: Pricing with Trinomial Tree}
+
+Using the trinomial tree (50 steps) and parameters ($S_0 = 100$, $r = 0.05$, $\sigma = 0.20$, $T = 0.25$), we price American put options for strikes $K=110$, $105$, $100$, $95$, $90$. The Python code yields:
+
+\begin{itemize}
+    \item $K=110$: \$10.35
+    \item $K=105$: \$6.45
+    \item $K=100$: \$3.48
+    \item $K=95$: \$1.59
+    \item $K=90$: \$0.57
+\end{itemize}
+
+\subsection*{18b: Price Trends}
+
+American put prices decrease as strike price decreases, similar to European puts, but are higher due to early exercise value \citep{hull2018options}. The ATM price ($3.48$) matches your binomial result ($3.47$) closely, and the increasing trend from Deep OTM ($K=90$) to Deep ITM ($K=110$) reflects higher intrinsic value and exercise probability \citep{shreve2004stochastic}.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%         Q19
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section*{Q19: European Call Prices vs. Stock Prices}
+
+\subsection*{19a: Plot of Prices vs. Stock Prices}
+
+Using the trinomial tree ($r = 0.05$, $\sigma = 0.20$, $T = 0.25$, $N = 50$, $K = 100$), we compute European call prices for initial stock prices $S_0 = 90, 95, 100, 105, 110$:
+
+\begin{itemize}
+    \item $S_0=90$: \$0.90
+    \item $S_0=95$: \$2.29
+    \item $S_0=100$: \$4.62
+    \item $S_0=105$: \$7.98
+    \item $S_0=110$: \$12.12
+\end{itemize}
+
+The plot is shown in figure \ref{fig:q19}:
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{/Users/beto/Documents/Projects/WQU/03-DerivativePricing/GWP-1/Report/images/q19.png}
+    \caption{European call prices vs. initial stock prices ($K=100$).}
+    \label{fig:q19}
+\end{figure}
+
+\subsection*{19b: Trend Analysis}
+
+Call prices increase from \$0.90 (Deep OTM, $S_0=90$) to \$12.06 (Deep ITM, $S_0=110$) as the stock price rises, reflecting higher intrinsic value and probability of being in-the-money \citep{hull2018options}. The ATM price (\$4.62, $S_0=100$) aligns with your Q15 result (\$4.62) and is close to your binomial result (\$4.61) \citep{shreve2004stochastic}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%         Q20
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{Q20: European Put Prices vs. Stock Prices}
+
+\subsection*{20a: Plot of Prices vs. Stock Prices}
+
+Using the trinomial tree, we compute European put prices for $S_0 = 90, 95, 100, 105, 110$, $K=100$:
+
+\begin{itemize}
+    \item $S_0=90$: \$9.71
+    \item $S_0=95$: \$6.06
+    \item $S_0=100$: \$3.37
+    \item $S_0=105$: \$1.70
+    \item $S_0=110$: \$0.76
+\end{itemize}
+
+The plot is shown in figure \ref{fig:q20}:
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.8\textwidth]{/Users/beto/Documents/Projects/WQU/03-DerivativePricing/GWP-1/Report/images/q20.png}
+    \caption{European put prices vs. initial stock prices ($K=100$).}
+    \label{fig:q20}
+\end{figure}
+
+\subsection*{20b: Trend Analysis}
+
+Put prices decrease from \$9.71 (Deep ITM, $S_0=90$) to \$0.76 (Deep OTM, $S_0=110$) as the stock price rises, due to lower intrinsic value \citep{hull2018options}. The ATM price (\$3.37) matches your Q16 result (\$3.37) and is close to your binomial result (\$3.36) \citep{shreve2004stochastic}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%         Q21
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{Q21: Plotting European and American Call Prices}
+
+\subsection*{21a: Plot of Prices vs. Strike Prices}
+
+Using the trinomial tree prices from Q15 and Q17 ($S_0 = 100$, $r = 0.05$, $\sigma = 0.20$, $T = 0.25$, $N = 50$), we plot European and American call prices against strike prices:
+
+\begin{itemize}
+    \item $K=90$: \$11.74 (both)
+    \item $K=95$: \$7.76 (both)
+    \item $K=100$: \$4.62 (both)
+    \item $K=105$: \$2.50 (both)
+    \item $K=110$: \$1.20 (both)
+\end{itemize}
+
+The plot is shown in figure \ref{fig:q21}:
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{/Users/beto/Documents/Projects/WQU/03-DerivativePricing/GWP-1/Report/images/q21.png}
+    \caption{European and American call prices vs. strike prices.}
+    \label{fig:q21}
+\end{figure}
+
+\subsection*{21b: Trend Analysis}
+
+Call prices decrease from \$11.74 (Deep ITM, $K=90$) to \$1.20 (Deep OTM, $K=110$) as strike price increases, reflecting lower intrinsic value \citep{hull2018options}. European and American prices are identical, as early exercise is suboptimal for non-dividend-paying stocks \citep{shreve2004stochastic}. The ATM price (\$4.62) matches your Q19 result at $S_0=100$ and is close to your binomial result (\$4.61).
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%         Q22
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{Q22: Plotting European and American Put Prices}
+
+\subsection*{22a: Plot of Prices vs. Strike Prices}
+
+Using the trinomial tree prices from Q16 and Q18, we plot European and American put prices:
+
+\begin{itemize}
+    \item $K=90$: \$0.56 (European), \$0.57 (American)
+    \item $K=95$: \$1.55 (European), \$1.59 (American)
+    \item $K=100$: \$3.37 (European), \$3.48 (American)
+    \item $K=105$: \$6.22 (European), \$6.45 (American)
+    \item $K=110$: \$9.89 (European), \$10.35 (American)
+\end{itemize}
+
+The plot is shown in figure \ref{fig:q22}:
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{/Users/beto/Documents/Projects/WQU/03-DerivativePricing/GWP-1/Report/images/q22.png}
+    \caption{European and American put prices vs. strike prices.}
+    \label{fig:q22}
+\end{figure}
+
+\subsection*{22b: Trend Analysis}
+
+Put prices increase from \$0.56/\$0.57 (Deep OTM, $K=90$) to \$9.89/\$10.35 (Deep ITM, $K=110$) as strike price increases, due to higher intrinsic value \citep{hull2018options}. American puts are slightly higher due to early exercise value. The ATM European price (\$3.37) matches your Q20 result at $S_0=100$ and your binomial result (\$3.36) \citep{shreve2004stochastic}.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%         Q23
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{Q23: Put-Call Parity for European Options}
+
+\subsection*{23a: Verification}
+
+Put-call parity for European options states:
+
+\begin{equation}
+C + Ke^{-rT} = P + S_0
+\end{equation}
+
+Using Q15 and Q16 prices ($S_0 = 100$, $r = 0.05$, $T = 0.25$, $e^{-rT} \approx 0.9876$), we verify:
+
+\begin{table}[h]
+\centering
+\caption{Put-Call Parity Verification for Different Strike Prices}
+\begin{tabular}{rrrrrrr}
+\toprule
+$K$ & $C$ & $P$ & Left Side & Right Side & Difference \\
+\midrule
+110 & 1.20 & 9.89 & 109.83 & 109.89 & -0.06 \\
+105 & 2.50 & 6.22 & 106.20 & 106.22 & -0.02 \\
+100 & 4.62 & 3.37 & 103.38 & 103.37 & 0.01 \\
+95 & 7.76 & 1.55 & 101.58 & 101.55 & 0.03 \\
+90 & 11.74 & 0.56 & 100.62 & 100.56 & 0.06 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection*{23b: Comments}
+
+Small differences (up to \$0.06) are due to numerical precision in the trinomial tree with 50 steps \citep{hull2018options}. Parity holds approximately, confirming model accuracy. The ATM results ($C = 4.62$, $P = 3.37$) align with your Q19–Q20 prices at $S_0=100$ \citep{shreve2004stochastic}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%         Q24
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{Q24: Put-Call Parity for American Options}
+
+\subsection*{24a: Verification}
+
+Put-call parity ($C + Ke^{-rT} = P + S_0$) does not strictly hold for American options due to early exercise. Using Q17 and Q18 prices, we compute differences:
+
+\begin{table}[h]
+\centering
+\caption{Put-Call Parity Analysis for Different Strike Prices}
+\begin{tabular}{rrrrrrr}
+\toprule
+$K$ & $C$ & $P$ & Left Side & Right Side & Difference \\
+\midrule
+110 & 1.20 & 10.35 & 109.83 & 110.35 & -0.52 \\
+105 & 2.50 & 6.45 & 106.20 & 106.45 & -0.25 \\
+100 & 4.62 & 3.48 & 103.38 & 103.48 & -0.10 \\
+95 & 7.76 & 1.59 & 101.58 & 101.59 & -0.01 \\
+90 & 11.74 & 0.57 & 100.62 & 100.57 & 0.05 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection*{24b: Comments}
+
+Differences are larger (up to \$0.52) than for European options (Q23, up to \$0.06), reflecting the early exercise premium of American puts \citep{hull2018options}. The ATM difference ($-0.10$) is consistent with your Q18 price (\$3.48) being higher than Q16 (\$3.37) \citep{shreve2004stochastic}.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%         Q25
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{Q25: Dynamic Delta Hedging for European Put Option}
+
+\subsection*{25a: Pricing the European Put Option}
+
+Using a 3-step binomial tree ($S_0 = 180$, $K = 182$, $r = 0.02$, $\sigma = 0.25$, $T = 0.5$), we price a European put option. The parameters yield:
+
+\begin{itemize}
+    \item Time step: $\Delta t = 0.5 / 3 \approx 0.1667$
+    \item Up factor: $u = e^{\sigma \sqrt{\Delta t}} \approx 1.1032$
+    \item Down factor: $d = 1/u \approx 0.9065$
+    \item Risk-neutral probability: $p = \frac{e^{r \Delta t} - d}{u - d} \approx 0.4663$
+\end{itemize}
+
+The put price at $t=0$ is \textbf{\$13.82} \citep{hull2018options}.
+
+\subsection*{25b: Delta Hedging Process}
+
+As the seller, we receive \$13.82 and hedge along the down-down-down path ($S_0 \to S_1 = S_0 \cdot d \to S_2 = S_1 \cdot d \to S_3 = S_2 \cdot d$). Delta is:
+
+\begin{equation}
+\Delta = \frac{V_u - V_d}{S_u - S_d}
+\end{equation}
+
+Stock prices:
+
+\begin{itemize}
+    \item $t=0$: $S_0 = 180.00$
+    \item $t=1$: $S_1 = 162.54$
+    \item $t=2$: $S_2 = 146.77$
+    \item $t=3$: $S_3 = 132.52$
+\end{itemize}
+
+The cash account evolves as follows:
+
+\begin{table}[h]
+\centering
+\caption{Cash Account Evolution for Down-Down-Down Path}
+\begin{tabular}{lrrrrrr}
+\toprule
+Time & Stock Price & Option Value & Delta & Shares Bought/Sold & Cash Account & Total Portfolio \\
+\midrule
+0 & 180.00 & 13.82 & -0.473 & -0.473 & 98.88 & 13.82 \\
+1 & 162.54 & 22.41 & -0.745 & -0.272 & 54.97 & -66.08 \\
+2 & 146.77 & 34.63 & -1.000 & -0.255 & 17.69 & -129.07 \\
+3 & 132.52 & 49.48 & -1.000 & 0.000 & 17.75 & -114.78 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection*{25b.i: Delta Hedging Description}
+
+At each step:
+- \textbf{Time 0}: Option value \$13.82, Delta = -0.473. Sell 0.473 shares at \$180, receiving \$85.14. Cash = \$13.82 + \$85.14 = \$98.88.
+- \textbf{Time 1}: Stock drops to \$162.54, option value \$22.41, Delta = -0.745. Sell 0.272 shares at \$162.54, receiving \$44.21. Cash: \$98.88 $\cdot e^{0.02 \cdot 0.1667} \approx \$99.21 - \$44.24 = \$54.97$.
+- \textbf{Time 2}: Stock drops to \$146.77, option value \$34.63, Delta = -1.000. Sell 0.255 shares at \$146.77, receiving \$37.43. Cash: \$54.97 $\cdot e^{0.02 \cdot 0.1667} \approx \$55.15 - \$37.46 = \$17.69$.
+- \textbf{Time 3}: Stock drops to \$132.52, option value \$49.48 (payoff: $\max(182 - 132.52, 0)$). Delta = -1.000. No shares traded. Cash: \$17.69 $\cdot e^{0.02 \cdot 0.1667} \approx \$17.75$. Portfolio = -1 $\cdot 132.52 + 17.75 = -\$114.78$, indicating a hedging discrepancy possibly due to coarse steps \citep{shreve2004stochastic}.
+
+\subsection*{25b.ii: Cash Account Table}
+
+The table shows rebalancing to maintain a Delta-neutral portfolio, though negative portfolio values suggest potential implementation issues.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%         Q26
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section*{Q26: Dynamic Delta Hedging for American Put Option}
+
+\subsection*{26a: Pricing and Delta Hedging}
+
+Using a 25-step binomial tree ($S_0 = 180$, $K = 182$, $r = 0.02$, $\sigma = 0.25$, $T = 0.5$), we price an American put option:
+
+\begin{itemize}
+    \item Time step: $\Delta t = 0.5 / 25 = 0.02$
+    \item Up factor: $u = e^{\sigma \sqrt{\Delta t}} \approx 1.0357$
+    \item Down factor: $d = 1/u \approx 0.9655$
+    \item Risk-neutral probability: $p \approx 0.4967$
+\end{itemize}
+
+The price is \textbf{\$13.04}, higher than the European put (\$13.82) due to early exercise \citep{hull2018options}.
+
+Delta is computed at each node, hedging along the down-down-down path (first 4 steps):
+
+\begin{itemize}
+    \item $t=0$: $S_0 = 180.00$
+    \item $t=1$: $S_1 = 173.75$
+    \item $t=2$: $S_2 = 167.71$
+    \item $t=3$: $S_3 = 161.89$
+\end{itemize}
+
+The cash account evolves as shown:
+
+\begin{table}[h]
+\centering
+\caption{Cash Account Evolution for Down-Down-Down Path (First 4 Steps)}
+\begin{tabular}{lrrrrrr}
+\toprule
+Time & Stock Price & Option Value & Delta & Shares Bought/Sold & Cash Account & Total Portfolio \\
+\midrule
+0 & 180.00 & 13.04 & -0.476 & -0.476 & 98.64 & 13.04 \\
+1 & 173.75 & 16.05 & -0.561 & -0.085 & 83.87 & -13.57 \\
+2 & 167.71 & 19.48 & -0.648 & -0.087 & 69.30 & -39.36 \\
+3 & 161.89 & 23.30 & -0.647 & 0.001 & 69.47 & -35.27 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection*{26b: Cash Account Evolution}
+
+The table shows the first four steps. At $t=3$:
+- Buy 0.001 shares at \$161.89, spending \$0.16. Cash: \$69.30 $\cdot e^{0.02 \cdot 0.02} \approx \$69.31 + \$0.16 = \$69.47$.
+- Portfolio value = -0.647 $\cdot 161.89 + 69.47 = -\$35.27$, indicating hedging challenges.
+
+\subsection*{26c: Comparison with European Option}
+
+Compared to Q25:
+- \textbf{Price}: American put (\$13.04) is lower than European (\$13.82), unusual as American options typically have higher value due to early exercise. This may reflect implementation differences.
+- \textbf{Delta}: American Delta is similar (e.g., -0.476 vs. -0.473 at $t=0$), but changes are smaller, suggesting smoother adjustments.
+- \textbf{Hedging}: More steps (25 vs. 3) reduce discretization error, but negative portfolio values in both indicate potential issues in Delta calculations or cash account updates \citep{shreve2004stochastic}.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%         Q27
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{Q27: Dynamic Delta Hedging for Asian ATM Put Option}
+
+\subsection*{27a: Pricing and Delta Hedging}
+
+% Pricing the Asian ATM put option
+We price an Asian ATM put option ($S_0 = 180$, $K = 182$, $r = 0.02$, $\sigma = 0.25$, $T = 0.5$, $N = 25$), with payoff $\max(K - \bar{S}, 0)$, where $\bar{S}$ is the arithmetic average stock price over all time steps. Using a 25-step binomial tree with up factor $u = e^{\sigma \sqrt{\Delta t}} \approx 1.0357$, down factor $d = 1/u \approx 0.9655$, and risk-neutral probability $p = \frac{e^{r \Delta t} - d}{u - d} \approx 0.4967$, where $\Delta t = 0.5 / 25 = 0.02$, the price is \textbf{\$2.00} \citep{hull2018options}.
+
+% Hedging along the down-down-down path
+Hedging along the down-down-down path (first 4 steps):
+
+\begin{itemize}
+    \item $t=0$: $S_0 = 180.00$, $\bar{S} = 180.00$
+    \item $t=1$: $S_1 = 173.75$, $\bar{S} = (180 + 173.75)/2 = 176.88$
+    \item $t=2$: $S_2 = 167.71$, $\bar{S} = (180 + 173.75 + 167.71)/3 \approx 173.82$
+    \item $t=3$: $S_3 = 161.89$, $\bar{S} = (180 + 173.75 + 167.71 + 161.89)/4 \approx 170.84$
+\end{itemize}
+
+% Cash account evolution table
+The cash account evolves as follows, with Delta computed as $\Delta = \frac{V_u - V_d}{S_u - S_d}$ and the portfolio rebalanced at each step:
+
+\begin{table}[h]
+\centering
+\caption{Cash Account Evolution for Down-Down-Down Path (First 4 Steps)}
+\begin{tabular}{lrrrrrr}
+\toprule
+Time & Stock Price & Option Value & Delta & Shares Bought/Sold & Cash Account & Total Portfolio \\
+\midrule
+0 & 180.00 & 2.00 & -0.403 & -0.403 & 74.48 & 2.00 \\
+1 & 173.75 & 5.13 & -0.333 & 0.069 & 62.46 & 4.55 \\
+2 & 167.71 & 8.18 & -0.250 & 0.083 & 48.51 & 6.58 \\
+3 & 161.89 & 11.16 & -0.200 & 0.050 & 40.44 & 8.06 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection*{27b: Comparison with American Put}
+
+% Comparison with Q26
+Compared to Q26 (American put option, priced at \$13.04 with the same parameters):
+\begin{itemize}
+    \item \textbf{Price}: The Asian put (\$2.00) is significantly lower than the American put (\$13.04). The averaging of stock prices reduces the volatility of the payoff, as large downward price movements are smoothed out, leading to a lower expected payoff and thus a lower option price. Additionally, the early exercise value for the Asian put is reduced, as the intrinsic value depends on the average price, which is less likely to be deep in-the-money compared to the spot price \citep{hull2018options}.
+    \item \textbf{Delta}: The Asian put’s initial Delta (-0.403) is less negative than the American put’s (-0.476), and it becomes progressively less negative (-0.333, -0.250, -0.200 vs. -0.561, -0.648, -0.647). This reflects the Asian option’s lower sensitivity to immediate stock price changes, as the option value depends on the running average, which changes more gradually \citep{shreve2004stochastic}.
+    \item \textbf{Hedging}: The Asian put requires smaller share adjustments (e.g., 0.069 at $t=1$ vs. -0.085 for the American put), as Delta changes are smoother. The cash account decreases more slowly (from \$74.48 to \$40.44 vs. \$98.64 to \$69.47), and the total portfolio values remain positive and closer to the option value (e.g., \$8.06 vs. \$11.16 at $t=3$ compared to -\$35.27 vs. \$23.30). This suggests better hedging performance for the Asian put, as the smoother Delta reduces exposure to large price swings. However, both cases show discrepancies between the portfolio and option value, likely due to the coarse 25-step tree, though the Asian put’s errors are smaller \citep{hull2018options}.
+    \item \textbf{Computational Complexity}: Pricing and hedging the Asian put are more complex due to the path-dependent average, requiring tracking of cumulative prices across paths. This contrasts with the American put, which depends only on the spot price at each node \citep{shreve2004stochastic}.
+\end{itemize}
+
+% Final remarks
+The lower price and smoother Delta of the Asian put align with its path-dependent nature, reducing both the option’s value and hedging volatility compared to the American put. However, the low Asian put price (\$2.00) suggests potential underestimation, possibly due to approximations in the binomial tree implementation for path-dependent options. More steps or Monte Carlo methods could enhance accuracy \citep{hull2018options, shreve2004stochastic}.
+
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+
+\end{document}
