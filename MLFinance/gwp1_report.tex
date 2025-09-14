@@ -1,0 +1,286 @@
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{enumitem}
+
+\title{Marketing Handbook for Machine Learning Methodologies in Trading Strategies}
+\author{Kiady Tsilavohery Rasamoelina\\
+Yogesh Verma\\
+Alberto Hernandez-Espinosa}
+\date{14 September 2025}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This handbook provides thoughtful guidelines for addressing challenges in modelling trading strategies using cutting-edge machine learning methodologies. It covers selected techniques from various categories, including their advantages, basics, computations, disadvantages, equations, features, guides, hyperparameters, illustrations, journal references, and keywords. The document integrates these to highlight the strengths of machine learning in finance, with additional sections on hyperparameter tuning, marketing advantages, and further learning resources.
+\end{abstract}
+
+\noindent \textbf{Disclaimer:} This work utilised AI for debugging, optimising code, and reviewing references.
+
+\section{LASSO Regression}
+\label{sec:lasso}
+
+\subsection{Advantages}
+LASSO (Least Absolute Shrinkage and Selection Operator) regression offers several benefits for developing trading strategies. It performs automatic feature selection by shrinking less important coefficients to zero, reducing model complexity and enhancing interpretability. This is particularly valuable in financial datasets with high-dimensional features, such as stock returns or technical indicators. Additionally, LASSO mitigates overfitting through L1 regularization, improving the generalisability of trading models. Its ability to handle large numbers of predictors makes it ideal for identifying key drivers in complex market environments.
+
+\subsection{Basics}
+LASSO regression is a linear regression technique that incorporates an L1 penalty term into the ordinary least squares (OLS) objective function. This penalty encourages sparsity by setting some coefficients to zero, effectively selecting a subset of features. It is classified as a supervised learning method within the family of linear models with regularization, making it suitable for predicting continuous outcomes, such as future stock returns, in trading applications.
+
+\subsection{Computation}
+The LASSO model was implemented using Python with the \texttt{scikit-learn} library on a simulated financial dataset comprising 1000 observations and 10 technical indicators (e.g., RSI, MACD). The features were standardised, and the model was fitted with a regularization parameter \(\alpha = 0.1\). The results showed that LASSO selected two features with non-zero coefficients: Indicator\_1 (coefficient: 0.4075) and Indicator\_2 (coefficient: 0.2061). The mean squared error (MSE) of the predictions was 0.0291, indicating good model performance on the simulated data.
+
+\subsection{Disadvantages}
+Despite its strengths, LASSO has limitations. It struggles with highly correlated predictors, as it may arbitrarily select one while discarding others, potentially missing important signals in financial data. The regularization parameter \(\alpha\) requires careful tuning to balance bias and variance. Additionally, LASSO assumes linear relationships, which may limit its effectiveness for non-linear market dynamics without prior feature engineering.
+
+\subsection{Equations}
+The LASSO model minimises the following objective function:
+\[
+\min_{\beta} \left( \frac{1}{n} \sum_{i=1}^n (y_i - \beta_0 - \sum_{j=1}^p \beta_j x_{ij})^2 + \lambda \sum_{j=1}^p |\beta_j| \right)
+\]
+where \(y_i\) is the target (e.g., stock returns), \(x_{ij}\) are predictors (e.g., technical indicators), \(\beta_j\) are coefficients, \(\lambda\) is the regularization parameter, and \(n\) is the number of observations. The L1 penalty (\(\lambda \sum |\beta_j|\)) enforces sparsity by shrinking some coefficients to zero.
+
+\subsection{Features}
+LASSO automatically performs feature selection, making it efficient for high-dimensional data. It works well with numerical predictors and assumes linear relationships between features and the target. However, it requires standardised input data to ensure fair comparison across features.
+
+\subsection{Guide}
+\begin{itemize}
+    \item \textbf{Inputs}: Feature matrix \(X\) (e.g., stock returns, economic indicators), target vector \(y\) (e.g., future returns), regularization parameter \(\lambda\) (or \(\alpha\) in implementation).
+    \item \textbf{Outputs}: Coefficient vector \(\beta\), predicted values \(\hat{y}\).
+\end{itemize}
+
+\subsection{Hyperparameters}
+\begin{itemize}
+    \item \(\lambda\) (or \(\alpha\)): Controls the strength of the L1 penalty (tuned via cross-validation).
+    \item Tolerance: Convergence criterion for optimisation.
+    \item Maximum iterations: Limit for the optimisation algorithm.
+\end{itemize}
+
+\subsection{Illustration}
+The LASSO model’s feature selection process is visualised through a plot of coefficient paths, showing how coefficients change as the regularization parameter \(\alpha\) increases on a log scale (from \(10^{-4}\) to \(10^1\)). The plot, generated from the simulated dataset, reveals that \textit{Indicator\_1} and \textit{Indicator\_2} maintain significant coefficients until \(\alpha \approx 0.1\) and \(\alpha \approx 0.01\) respectively, while other indicators’ coefficients drop to zero at higher \(\alpha\) values. This confirms LASSO’s ability to select key predictors, as depicted in Figure~\ref{fig:lasso_paths}.
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{/Users/alberto/Documents/projects/GWP_1/MLFinance/images/lasso_coefficient_paths.png}
+    \caption{LASSO coefficient paths showing feature selection as the regularization parameter increases.}
+    \label{fig:lasso_paths}
+\end{figure}
+
+\subsection{Journal}
+Fan, J., Liao, Y., and Mincheva, M. “Large Covariance Estimation by Thresholding Principal Orthogonal Complements.” *Journal of Econometrics*, vol. 164, no. 1, 2013, pp. 188–202.
+
+\subsection{Keywords}
+LASSO, linear regression, regularization, feature selection, high-dimensional data, trading strategies.
+
+\section{k-Means Clustering}
+\label{sec:kmeans}
+
+\subsection{Advantages}
+k-Means clustering provides significant benefits for trading strategies by offering a simple and computationally efficient method to segment financial data, such as grouping stocks by risk profiles or returns. Its scalability suits large datasets common in market analysis, and the interpretable clusters aid investment managers in developing targeted strategies, enhancing portfolio diversification.
+
+\subsection{Basics}
+k-Means clustering is an unsupervised learning algorithm that partitions data into \(k\) clusters by minimising the variance within each cluster. It assigns data points to clusters based on their distance to cluster centroids, iteratively updating these centroids until convergence. It is classified as an unsupervised learning method and a partitioning clustering technique, ideal for identifying patterns in financial datasets without labelled outcomes.
+
+\subsection{Computation}
+The k-Means model was implemented using Python with the \texttt{scikit-learn} library on a simulated dataset of 1000 stocks, featuring two dimensions: return and volatility. With \(k=3\) clusters, the model assigned labels, and the first 10 samples were all assigned to Cluster 2, reflecting the initial data distribution. The centroid coordinates were: Cluster 0 (Return=0.306, Volatility=0.410), Cluster 1 (Return=0.498, Volatility=0.620), and Cluster 2 (Return=0.105, Volatility=0.190), indicating distinct groupings based on the simulated financial characteristics.
+
+\subsection{Disadvantages}
+k-Means has notable limitations. It requires the number of clusters \(k\) to be specified in advance, which can be subjective and challenging to determine in financial contexts. It is sensitive to outliers, which may skew cluster centroids in volatile markets, and assumes spherical clusters, potentially misrepresenting complex market patterns.
+
+\subsection{Equations}
+The k-Means algorithm minimises the following objective function:
+\[
+\min \sum_{i=1}^n \sum_{k=1}^K w_{ik} || x_i - \mu_k ||^2
+\]
+where \(x_i\) is a data point, \(\mu_k\) is the centroid of cluster \(k\), \(w_{ik}\) is 1 if \(x_i\) belongs to cluster \(k\) and 0 otherwise, and \(K\) is the number of clusters. This measures the within-cluster sum of squares, driving the assignment and centroid update process.
+
+\subsection{Features}
+k-Means is fast and scalable for large numerical datasets, such as stock returns and volatility metrics. It is sensitive to initial centroid placement, mitigated by multiple random starts, but assumes data can be grouped into spherical clusters, which may not always hold in financial applications.
+
+\subsection{Guide}
+\begin{itemize}
+    \item \textbf{Inputs}: Feature matrix \(X\) (e.g., stock returns, volatility metrics), number of clusters \(k\).
+    \item \textbf{Outputs}: Cluster assignments for each data point, cluster centroids.
+\end{itemize}
+
+\subsection{Hyperparameters}
+\begin{itemize}
+    \item \(k\): Number of clusters (tuned via methods like the elbow method or silhouette score).
+    \item Number of initializations: Number of random starts to avoid local minima.
+    \item Maximum iterations: Limit for convergence.
+\end{itemize}
+
+\subsection{Illustration}
+The clustering process is visualised through a scatter plot of the simulated financial data, with points coloured by cluster (0, 1, 2) and centroids marked with red ‘x’ symbols. The plot shows three distinct clusters: Cluster 2 (purple, centroid at ~0.105, 0.190) on the lower left with the densest initial points, Cluster 0 (teal, centroid at ~0.306, 0.410) in the middle, and Cluster 1 (yellow, centroid at ~0.498, 0.620) on the upper right. This demonstrates k-Means’ ability to segment data, as depicted in Figure~\ref{fig:kmeans_clusters}.
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{/Users/alberto/Documents/projects/GWP_1/MLFinance/images/kmeans_clusters.png}
+    \caption{k-Means clustering of financial data showing three clusters with centroids.}
+    \label{fig:kmeans_clusters}
+\end{figure}
+
+\subsection{Journal}
+López de Prado, M. “Building Diversified Portfolios that Outperform Out-of-Sample.” *Journal of Portfolio Management*, vol. 42, no. 4, 2016, pp. 59–69.
+
+\subsection{Keywords}
+k-means, clustering, unsupervised learning, market segmentation, portfolio optimisation.
+
+\section{Principal Components Analysis (PCA)}
+\label{sec:pca}
+
+\subsection{Advantages}
+Principal Components Analysis (PCA) offers significant advantages for trading strategies by reducing the dimensionality of correlated financial data, such as asset returns, simplifying models while retaining critical information. It captures the majority of variance, aiding portfolio risk management, and improves computational efficiency, making it valuable for large-scale trading algorithms.
+
+\subsection{Basics}
+PCA is a dimensionality reduction technique that transforms data into a new coordinate system where axes (principal components) are orthogonal and ordered by the variance they explain. It achieves this through linear combinations of the original features, making it an unsupervised learning method suitable for preprocessing financial datasets to enhance model performance.
+
+\subsection{Computation}
+The PCA model was implemented using Python with the \texttt{scikit-learn} library on a simulated dataset of 1000 assets with 5 correlated features (e.g., returns). After standardising the data, PCA was applied with 5 components. The explained variance ratios were: Component 0 (60.73\%), Component 1 (20.18\%), Component 2 (9.38\%), Component 3 (6.26\%), and Component 4 (3.45\%), with the first two components explaining ~80.91\% of the variance. A sample of the transformed data for the first five rows demonstrated the new principal component coordinates, ranging from -2.544 to 0.9889 for PC\_1, for instance.
+
+\subsection{Disadvantages}
+PCA has limitations that affect its application in finance. It assumes linear relationships, which may not capture non-linear market dynamics. The interpretability of principal components can be challenging, as they are combinations of original features. Additionally, it is sensitive to the scale of data, necessitating standardisation beforehand.
+
+\subsection{Equations}
+PCA transforms the data via the following projection:
+\[
+Z = X W
+\]
+where \(X\) is the standardised data matrix, \(W\) is the matrix of eigenvectors (principal components), and \(Z\) is the transformed data. The components are derived by maximising variance, solved as \(\max \text{Var}(X w)\) subject to \(||w|| = 1\), where \(w\) is the eigenvector corresponding to the largest eigenvalue of the covariance matrix.
+
+\subsection{Features}
+PCA effectively handles correlated predictors, making it ideal for numerical financial data. It requires standardisation and is lossless if all components are retained, though typically only the top components are used, introducing some information loss.
+
+\subsection{Guide}
+\begin{itemize}
+    \item \textbf{Inputs}: Feature matrix \(X\) (e.g., asset returns), number of components to retain.
+    \item \textbf{Outputs}: Transformed data \(Z\), principal component loadings, explained variance ratios.
+\end{itemize}
+
+\subsection{Hyperparameters}
+\begin{itemize}
+    \item Number of components: Number of principal components to retain (tuned via explained variance).
+    \item Standardisation method: Scaling approach (e.g., standard scaler).
+\end{itemize}
+
+\subsection{Illustration}
+The PCA process is visualised through two plots. The scree plot displays the explained variance ratio for each of the five components, showing a steep drop after Component 0 (60.73\%) and a more gradual decline, indicating that the first two components capture most variance. The transformed data scatter plot, showing PC1 versus PC2, reveals a dense, elliptical cluster of 1000 points centered near (0, 0), with a wider spread along PC1, consistent with its higher variance contribution. These are depicted in Figures~\ref{fig:pca_scree} and~\ref{fig:pca_transformed}.
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{/Users/alberto/Documents/projects/GWP_1/MLFinance/images/pca_scree_plot.png}
+    \caption{Scree plot showing the explained variance ratio for each principal component.}
+    \label{fig:pca_scree}
+\end{figure}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{/Users/alberto/Documents/projects/GWP_1/MLFinance/images/pca_transformed_plot.png}
+    \caption{PCA transformed data scatter plot (PC1 vs PC2) showing the data distribution.}
+    \label{fig:pca_transformed}
+\end{figure}
+
+\subsection{Journal}
+Avellaneda, M., and Lee, J. H. “Statistical Arbitrage in the U.S. Equities Market.” *Quantitative Finance*, vol. 10, no. 7, 2010, pp. 761–782.
+
+\subsection{Keywords}
+PCA, dimensionality reduction, principal components, portfolio management, statistical arbitrage.
+
+\section{Classification Trees}
+\label{sec:classification_trees}
+
+\subsection{Advantages}
+Classification trees provide notable benefits for trading strategies by handling non-linear relationships, making them suitable for complex decisions such as buy, sell, or hold. Their intuitive and interpretable structure appeals to investment managers, and they are robust to outliers and missing values, enhancing reliability in volatile markets.
+
+\subsection{Basics}
+Classification trees are decision tree models that recursively split the feature space into regions based on feature thresholds, assigning class labels (e.g., buy or hold/sell) to each region. This supervised learning method employs a non-linear approach, ideal for categorical trading outcomes derived from financial indicators.
+
+\subsection{Computation}
+The classification tree was implemented using Python with the \texttt{scikit-learn} library on a simulated dataset of 1000 days, featuring four technical indicators (RSI, MACD, volume, price). The model, limited to a maximum depth of 3, was trained to predict binary outcomes (1 for buy, 0 for hold/sell) and achieved a perfect accuracy of 1.0000 on the test set (20\% of data). Sample predictions for the first five test samples were all 0 (hold/sell), reflecting the initial data distribution.
+
+\subsection{Disadvantages}
+Classification trees have limitations, including a tendency to overfit without pruning or depth constraints, as evidenced by the perfect test accuracy, which may not generalise to unseen data. They are sensitive to small data changes, leading to unstable trees, and may underperform compared to ensemble methods like random forests in complex markets.
+
+\subsection{Equations}
+The splitting criterion uses Gini impurity to determine the best splits:
+\[
+\text{Gini} = 1 - \sum_{i=1}^C p_i^2
+\]
+where \(p_i\) is the proportion of class \(i\) in a node, and \(C\) is the number of classes (2 in this case: buy, hold/sell). The algorithm selects the split that minimises this impurity across child nodes.
+
+\subsection{Features}
+Classification trees handle both categorical and numerical data, automatically capturing interactions between features. They require pruning to avoid overfitting and are robust to outliers, making them adaptable to diverse financial datasets.
+
+\subsection{Guide}
+\begin{itemize}
+    \item \textbf{Inputs}: Feature matrix \(X\) (e.g., technical indicators), target vector \(y\) (e.g., buy/sell labels).
+    \item \textbf{Outputs}: Class predictions, tree structure (nodes and splits).
+\end{itemize}
+
+\subsection{Hyperparameters}
+\begin{itemize}
+    \item Maximum depth: Limits tree depth to prevent overfitting (set to 3 here).
+    \item Minimum samples per split/leaf: Controls node splitting (default values used).
+    \item Splitting criterion: Gini impurity or entropy (Gini used here).
+\end{itemize}
+
+\subsection{Illustration}
+The decision-making process is visualised through a decision tree diagram with a maximum depth of 3. The root node splits on \textit{RSI <= 0.0}, directing samples with negative RSI to a "Hold/Sell" leaf (160 samples, gini=0.0), while positive RSI samples split further on \textit{MACD <= 0.0}. This structure reflects the binary rule (buy if both RSI and MACD are positive), with the tree terminating early due to depth constraints. The diagram, color-coded by class (green for "Hold/Sell", purple for "Buy"), is depicted in Figure~\ref{fig:classification_tree}.
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{/Users/alberto/Documents/projects/GWP_1/MLFinance/images/classification_tree.png}
+    \caption{Decision tree for trading decisions based on RSI and MACD thresholds.}
+    \label{fig:classification_tree}
+\end{figure}
+
+\subsection{Journal}
+Booth, A., Gerding, E., and McGroarty, F. “Automated Trading with Decision Trees in Financial Markets.” *European Journal of Operational Research*, vol. 234, no. 2, 2014, pp. 399–408.
+
+\subsection{Keywords}
+Classification trees, decision trees, non-linear modelling, trading decisions, interpretability.
+
+\section{Technical Section}
+\label{sec:technical}
+
+Hyperparameter tuning is a critical process in optimising machine learning models to ensure they perform effectively on trading strategies. This involves adjusting model-specific parameters that are not learned from the data but influence the learning process. Common techniques include grid search, which exhaustively evaluates a predefined set of hyperparameter combinations, random search, which samples combinations randomly to reduce computational cost, and cross-validation, which assesses model performance across multiple data subsets to mitigate overfitting. These methods are typically implemented using libraries like \texttt{scikit-learn}, balancing accuracy and computational efficiency.
+
+For the models discussed, specific hyperparameters require tuning. In LASSO regression, the regularization parameter \(\lambda\) (or \(\alpha\)) controls the strength of the L1 penalty and is tuned via cross-validation to balance bias and variance. The tolerance and maximum iterations also need adjustment for convergence. k-Means clustering relies on the number of clusters \(k\), tuned using the elbow method or silhouette score, alongside the number of initializations and maximum iterations to avoid local minima. Principal Components Analysis (PCA) involves tuning the number of components based on explained variance and the standardisation method to ensure proper scaling. Classification trees require tuning the maximum depth (set to 3 in the example) to prevent overfitting, along with minimum samples per split/leaf and the splitting criterion (e.g., Gini impurity), which influence tree structure and decision-making accuracy.
+
+These examples highlight the importance of tailoring hyperparameter tuning to each model’s characteristics, ensuring robust performance in financial applications. Cross-validation is particularly recommended to validate tuning outcomes, providing a reliable estimate of model generalisability across diverse market conditions.
+
+\section{Marketing Alpha}
+\label{sec:marketing_alpha}
+
+Machine learning (ML) techniques offer transformative potential for investment managers seeking to enhance trading strategies, delivering unparalleled precision, scalability, and interpretability. By leveraging advanced methodologies such as LASSO regression, k-Means clustering, Principal Components Analysis (PCA), and classification trees, financial professionals can unlock significant alpha—outperforming traditional approaches through data-driven insights.
+
+LASSO regression stands out by providing automatic feature selection, reducing model complexity while handling high-dimensional financial datasets like stock returns and technical indicators. Its ability to mitigate overfitting through L1 regularization ensures generalisable predictions, making it a powerful tool for identifying key market drivers. Similarly, PCA excels in reducing dimensionality of correlated asset data, capturing the majority of variance to simplify risk management and boost computational efficiency—ideal for optimising large portfolios. Together, these techniques streamline model development, enabling managers to focus on the most impactful variables without losing critical information.
+
+k-Means clustering complements these methods by offering a scalable solution for market segmentation, grouping stocks by risk profiles or returns with interpretable results. This facilitates targeted trading strategies and portfolio diversification, enhancing risk-adjusted returns. The method’s efficiency with large datasets ensures it can handle the volume of data typical in modern markets. Classification trees further enhance decision-making by capturing non-linear relationships, providing intuitive buy, sell, or hold recommendations robust to outliers. Their interpretability empowers managers to trust and act on model outputs, bridging the gap between complex algorithms and practical application.
+
+The combined features of these ML techniques—automatic feature selection, dimensionality reduction, scalability, and robustness—create a robust framework for trading success. LASSO and PCA refine input data, k-Means identifies market patterns, and classification trees deliver actionable decisions, all while adapting to diverse market conditions. This synergy not only improves accuracy but also reduces computational overhead, offering a competitive edge in dynamic financial environments. For investment managers, adopting these ML methodologies promises enhanced alpha generation, supported by their proven ability to handle real-world complexities and deliver consistent performance across trading strategies.
+
+\section{Learn More}
+\label{sec:learn_more}
+
+To deepen your understanding of machine learning (ML) techniques and their impact on trading strategies, the following resources highlight their strengths and applications in finance. These include peer-reviewed journal articles and authoritative websites that showcase the transformative potential of ML.
+
+\begin{thebibliography}{9}
+
+\bibitem{Fan2013}
+Fan, J., Liao, Y., and Mincheva, M. “Large Covariance Estimation by Thresholding Principal Orthogonal Complements.” *Journal of Econometrics*, vol. 164, no. 1, 2013, pp. 188–202.
+
+\bibitem{LopezdePrado2016}
+López de Prado, M. “Building Diversified Portfolios that Outperform Out-of-Sample.” *Journal of Portfolio Management*, vol. 42, no. 4, 2016, pp. 59–69.
+
+\bibitem{Avellaneda2010}
+Avellaneda, M., and Lee, J. H. “Statistical Arbitrage in the U.S. Equities Market.” *Quantitative Finance*, vol. 10, no. 7, 2010, pp. 761–782.
+
+\bibitem{Booth2014}
+Booth, A., Gerding, E., and McGroarty, F. “Automated Trading with Decision Trees in Financial Markets.” *European Journal of Operational Research*, vol. 234, no. 2, 2014, pp. 399–408.
+
+\bibitem{Brynjolfsson2016}
+Brynjolfsson, E., and McElheran, K. “The Rapid Adoption of Data-Driven Decision-Making.” *American Economic Review*, vol. 106, no. 5, 2016, pp. 133–139.
+
+\bibitem{KPMG2024}
+KPMG International. “The Future of Finance: Harnessing AI and Machine Learning.” 2024, kpmg.com/xx/en/home/insights/2024/02/the-future-of-finance-ai-ml.html. Accessed 14 Sept. 2025.
+
+\end{thebibliography}
+
+\end{document}
