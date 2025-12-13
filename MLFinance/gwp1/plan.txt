@@ -1,0 +1,30 @@
+Master Plan for Creating the Marketing Handbook Project
+
+1. **Review and Select Categories/Methods**: Analyze the provided categories. Select three out of the four categories. For each selected category, choose one specific method (e.g., from Category 1, pick LASSO regression; from Category 2, pick k-means clustering; from Category 3, pick Principal components; skip Category 4 or another). Ensure selections are relevant to trading strategies in finance.
+
+2. **Collaborative Basics and Keywords (Step 1)**: For each of the three selected methods, write the "Basics" section (definition and classification) and "Keywords" section (tags identifying the model). This will be done collectively as a team simulation.
+
+3. **Prepare LaTeX Template**: Create an initial LaTeX template for the report structured as a basic scientific paper. Include placeholders for: title ("Marketing Handbook for Machine Learning Methodologies in Trading Strategies"), abstract, author (Alberto Espinosa), introduction, main sections (one per method, plus Technical Section, Marketing Alpha, Learn More), and bibliography. Use British English throughout. Reference plot paths as /Users/alberto/Documents/projects/GWP_1/MLFinance/MLFinance/gwp1-2 for including figures.
+
+4. **Process Each Method Individually (Step 2)**: For each of the three methods, address the required areas in the specified format:
+   - Advantages
+   - Computation: First, develop and execute a Python script using the code_execution tool. The script must illustrate the method, include logging (e.g., print statements for outputs), and save plots/figures to /Users/alberto/Documents/projects/GWP_1/MLFinance/MLFinance/gwp1-2. Output the function call for code_execution and wait for user/system to provide execution results before proceeding to incorporate them into the report section.
+   - Disadvantages
+   - Equations (in LaTeX math format)
+   - Features
+   - Guide (inputs/outputs)
+   - Hyperparameters
+   - Illustration: Describe visuals (figures, flowcharts, graphs) showing how the model works. Use search_images or browse_page tools if needed to find or cite existing references. Include them in the LaTeX with references to saved paths.
+   - Journal: Use web_search or browse_page tools to find one peer-reviewed journal article (no Wikipedia/blogs) on the method's application in finance. Ensure it's not a course reading.
+   - Keywords (already partially done in Step 1, integrate fully).
+   Add each method's section to the LaTeX template progressively, without rewriting the entire document each time. For sections requiring tool calls (e.g., Journal, Illustration if citing), make the function calls and wait for results before finalizing the section.
+
+5. **Technical Section (Step 3)**: After completing the three method sections, write a "Technical Section" describing general hyperparameter tuning for models. Include examples from the hyperparameters listed in the individual method reports. Add this as a new section to the LaTeX template.
+
+6. **Marketing Alpha Section (Step 4)**: Write a 1-2 page "Marketing Alpha" section integrating advantages and features from the three methods to highlight how ML techniques excel in trading strategies. Add to LaTeX template.
+
+7. **Learn More Section (Step 5)**: Compile references from the journal articles in the method sections, plus additional ML websites emphasizing strengths (not tutorials/code sites). Format all in proper MLA style. Add as the final section to the LaTeX template.
+
+8. **Final Compilation and Review**: Assemble the complete LaTeX document with all sections, ensure no contractions, British English, and proper inclusion of plots/results from code executions. Review for coherence as a marketing handbook.
+
+9. **End Project**: Output the final LaTeX code once all steps are complete.

@@ -1,0 +1,471 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage[numbers]{natbib}
+\usepackage{geometry}
+\geometry{margin=1in}
+
+\title{Marketing Handbook for Machine Learning Methodologies in Trading Strategies}
+\author{Emihle Nxepe, Brandon Ryan Hoogstra, Alberto Hernandez-Espinosa}
+\date{December 2025}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This handbook presents a selection the solution to the Group Work Project 1 for WorldQuant University corresponding to Machine Learning for Finance.
+\end{abstract}
+
+\section*{Declaration on the Use of Artificial Intelligence}
+Artificial-intelligence utilities were employed to refine Python implementations, retrieve and cross-check scholarly sources, validate algorithmic expositions, and corroborate mathematical expressions. The manuscript, including all analyses and interpretations, was conceived and prepared solely by the authors.
+
+\section{Introduction}
+The strategies desk continually seeks methodologies that provide robust, interpretable, and computationally efficient tools for extracting actionable signals from financial data. Machine learning offers a spectrum of techniques that address key challenges such as high dimensionality, multicollinearity, regime identification, and noise reduction.
+
+This handbook focuses on three representative methodologies drawn from regularised regression, unsupervised partitioning, and linear dimensionality reduction. Each technique is presented with its theoretical underpinnings, computational illustration, practical features, and relevant financial applications. Subsequent sections integrate these insights to highlight their collective value in systematic trading and portfolio construction.
+
+\section{LASSO Regression}
+\subsection{Basics}
+LASSO (Least Absolute Shrinkage and Selection Operator) regression is a linear regression technique that incorporates L1 regularisation. It extends ordinary least squares regression by adding a penalty term proportional to the absolute value of the coefficients. This penalty forces some coefficients to shrink exactly to zero, thereby performing both continuous shrinkage and automatic variable selection. LASSO is particularly useful in high-dimensional settings where the number of predictors exceeds the number of observations or when multicollinearity is present.
+
+\subsection{Advantages}
+LASSO regression provides significant advantages for developing quantitative trading strategies. It automatically performs variable selection by driving irrelevant coefficients to exactly zero, resulting in sparse, interpretable models. This capability is invaluable in financial applications where portfolios of hundreds or thousands of potential predictors must be reduced to a manageable, economically meaningful subset.
+
+The method effectively mitigates multicollinearity a pervasive issue in financial factor datasets while reducing overfitting and enhancing out-of-sample performance. By producing biased but lower-variance estimates, LASSO improves generalisation in live trading environments. Compared to ridge regression, it offers built-in feature selection; compared to ordinary least squares, it remains stable in high-dimensional ($p \gg n$) regimes.
+
+Overall, LASSO supports robust alpha signal construction with controlled model complexity, facilitating lower turnover and reduced transaction costs.
+
+\subsection{Computation}
+A Python illustration was conducted using synthetic high-dimensional financial data: 200 observations and 100 predictors, of which only 10 were truly informative (non-zero coefficients ranging from -1.88 to 1.94).
+
+Features were standardised, and the data split into 140 training and 60 test observations. A LASSO model with fixed $\alpha = 0.1$ selected 5 features and achieved a test MSE of 3.6683.
+
+Cross-validated LASSO (LassoCV) automatically selected $\alpha \approx 0.0175$ and retained 10 features.
+
+Three diagnostic plots were generated and saved:
+
+\begin{figure}[H]
+\centering
+\IfFileExists{/Users/alberto/Documents/projects/GWP_1/MLFinance/MLFinance/gwp1-2/lasso_coefficient_paths.png}{\includegraphics[width=0.95\textwidth]{/Users/alberto/Documents/projects/GWP_1/MLFinance/MLFinance/gwp1-2/lasso_coefficient_paths.png}}{}
+\caption{LASSO coefficient paths as a function of regularisation strength ($\alpha$). The vertical red line indicates the selected $\alpha = 0.1$.}
+\label{fig:lasso_paths}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\IfFileExists{/Users/alberto/Documents/projects/GWP_1/MLFinance/MLFinance/gwp1-2/lasso_true_vs_estimated.png}{\includegraphics[width=0.95\textwidth]{/Users/alberto/Documents/projects/GWP_1/MLFinance/MLFinance/gwp1-2/lasso_true_vs_estimated.png}}{}
+\caption{True coefficients (blue) versus LASSO estimates at $\alpha = 0.1$ (red). Sparsity is evident.}
+\label{fig:lasso_true_est}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\IfFileExists{/Users/alberto/Documents/projects/GWP_1/MLFinance/MLFinance/gwp1-2/lasso_predictions_vs_actual.png}{\includegraphics[width=0.8\textwidth]{/Users/alberto/Documents/projects/GWP_1/MLFinance/MLFinance/gwp1-2/lasso_predictions_vs_actual.png}}{}
+\caption{Predicted versus actual values on the test set, showing reasonable alignment along the 45-degree line.}
+\label{fig:lasso_pred}
+\end{figure}
+
+These results demonstrate LASSO's ability to recover a sparse approximation of the true signal in a noisy, correlated, high-dimensional setting typical of financial prediction tasks.
+
+\subsection{Disadvantages}
+LASSO exhibits several limitations. In the presence of highly correlated predictors, it arbitrarily selects only one variable from each group, potentially discarding economically significant factors. The assumption of linearity restricts its ability to capture non-linear relationships without additional feature engineering.
+
+Coefficient estimates are biased, especially for truly large effects, and variable selection consistency requires conditions (e.g., irrepresentable condition) that are often violated in practice. Tuning the regularisation parameter demands cross-validation, which can be computationally expensive for very large datasets. Extensions such as group LASSO or elastic net are required for grouped or hierarchical variable selection.
+
+\subsection{Equations}
+The LASSO estimator solves the optimisation problem:
+
+\[
+\hat{\beta}^{\text{LASSO}} = \arg\min_{\beta} \left\{ \frac{1}{2n} \sum_{i=1}^n (y_i - \beta_0 - \sum_{j=1}^p x_{ij} \beta_j)^2 + \lambda \sum_{j=1}^p |\beta_j| \right\}
+\]
+
+Equivalently, under centred and standardised data:
+
+\[
+\hat{\beta}^{\text{LASSO}} = \arg\min_{\beta} \| y - X\beta \|^2_2 \quad \text{subject to} \quad \| \beta \|_1 \leq t
+\]
+
+where $\lambda$ (or $\alpha$ in scikit-learn) controls the strength of the L1 penalty.
+
+\subsection{Features}
+LASSO performs simultaneous coefficient estimation, shrinkage, and variable selection; produces exactly sparse solutions; handles p > n scenarios effectively; mitigates multicollinearity; is convex with a unique global optimum; and benefits from efficient coordinate-descent algorithms. It integrates well with cross-validation pipelines and supports warm starts for path computation.
+
+Standardisation of predictors is recommended, and the method does not natively handle categorical variables or interactions without preprocessing.
+
+\subsection{Guide}
+\textbf{Inputs:}
+\begin{itemize}
+\item Feature matrix \( X \) ($n \times p$), typically standardised
+\item Target vector \( y \) ($n \times 1$), e.g., forward returns or risk-adjusted performance
+\item Regularisation parameter \( \lambda \) ($\alpha$)
+\end{itemize}
+
+\textbf{Outputs:}
+\begin{itemize}
+\item Sparse coefficient vector \( \hat{\beta} \)
+\item Selected features (indices where \( \hat{\beta}_j \neq 0 \))
+\item Predicted values \( \hat{y} = X \hat{\beta} \)
+\item Model performance metrics (e.g., MSE, number of selected variables)
+\end{itemize}
+
+\subsection{Hyperparameters}
+Primary hyperparameter: alpha ($\lambda$) – strength of L1 penalty (larger values increase sparsity).
+
+Additional parameters:
+\begin{itemize}
+\item max\_iter – maximum iterations for convergence
+\item tol – optimisation tolerance
+\item selection – ‘cyclic’ or ‘random’ coordinate selection
+\item fit\_intercept – whether to estimate intercept (usually True)
+\end{itemize}
+
+Alpha is commonly tuned via cross-validation (LassoCV).
+
+\subsection{Illustration}
+The distinctive behaviour of LASSO arises from the diamond-shaped L1 constraint intersecting quadratic loss contours at axes, forcing zero coefficients.
+
+\begin{figure}[H]
+\centering
+\IfFileExists{/Users/alberto/Documents/projects/GWP_1/MLFinance/MLFinance/gwp1-2/lasso_coefficient_paths.png}{\includegraphics[width=0.9\textwidth]{/Users/alberto/Documents/projects/GWP_1/MLFinance/MLFinance/gwp1-2/lasso_coefficient_paths.png}}{}
+\caption{Coefficient paths from the computational example, illustrating progressive shrinkage and feature elimination.}
+\end{figure}
+
+Standard illustrations include the geometric interpretation of L1 versus L2 penalties and regularisation paths (see Hastie et al., The Elements of Statistical Learning, Chapter 3).
+
+\subsection{Journal}
+Gu, Shihao, Bryan Kelly, and Dacheng Xiu. “Empirical Asset Pricing via Machine Learning.” The Review of Financial Studies 33.5 (2020): 2223–2273. https://doi.org/10.1093/rfs/hhaa009.
+
+This influential article employs LASSO (among other methods) to select predictors from a vast set of firm characteristics for cross-sectional equity return prediction, demonstrating substantial improvements in out-of-sample $R^2$ and economic gains.
+
+\subsection{Keywords}
+LASSO, L1 regularisation, shrinkage, variable selection, sparse models, high-dimensional regression, penalised regression, feature selection, linear model, finance forecasting
+\section{k-means Clustering}
+\subsection{Basics}
+k-means clustering is an unsupervised machine learning algorithm that belongs to the family of partitioning methods. It aims to partition a dataset into k pre-specified distinct, non-overlapping clusters by minimising the within-cluster sum of squares (variance). The algorithm iteratively assigns observations to the nearest cluster centroid and then updates the centroids as the mean of the assigned points until convergence. It is a prototype-based, centroid-based clustering technique widely used for exploratory data analysis and pattern discovery.
+
+\subsection{Advantages}
+k-means clustering provides substantial benefits for quantitative trading strategies. It enables unsupervised discovery of natural groupings in asset universes without requiring labelled data, facilitating applications such as market regime detection, style clustering, and sector-independent peer grouping.
+
+The algorithm is computationally efficient (linear in the number of observations), straightforward to implement, and scales well to large datasets commonly encountered in finance. When clusters are well-separated and roughly spherical, k-means yields intuitive and actionable segments that can inform dynamic asset allocation, risk modelling, or pair selection in statistical arbitrage.
+
+Additionally, it supports exploratory analysis by revealing hidden structures in return or characteristic spaces, aiding factor construction and portfolio diversification.
+
+\subsection{Computation}
+A Python illustration was implemented using synthetic financial data comprising daily returns for 200 stocks over 252 trading days. The data were generated from three underlying market regimes (80, 60, and 60 stocks respectively) with distinct means and covariances to simulate realistic clustering challenges.
+
+After standardisation, k-means with k=3 converged in 3 iterations, achieving a final inertia of 45577.03. The resulting cluster sizes were 57, 120, and 23 stocks.
+
+The elbow method produced the following inertia values:
+
+\begin{itemize}
+\item k=1: 50400.00
+\item k=2: 45811.82
+\item k=3: 45577.03
+\item k=4: 45089.61
+\item k=5: 40173.80
+\item k=6: 40004.30
+\item k=7: 39530.09
+\item k=8: 39121.32
+\item k=9: 38727.40
+\item k=10: 38328.53
+\end{itemize}
+
+Three diagnostic plots were generated and saved:
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{/Users/alberto/Documents/projects/GWP_1/MLFinance/MLFinance/gwp1-2/kmeans_cluster_scatter.png}
+\caption{k-means clusters visualised in the first two principal components. Distinct groupings are evident despite some overlap.}
+\label{fig:kmeans_scatter}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{/Users/alberto/Documents/projects/GWP_1/MLFinance/MLFinance/gwp1-2/kmeans_elbow_plot.png}
+\caption{Elbow plot showing within-cluster inertia versus number of clusters. A subtle elbow appears around k=3--5.}
+\label{fig:kmeans_elbow}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{/Users/alberto/Documents/projects/GWP_1/MLFinance/MLFinance/gwp1-2/kmeans_true_regimes.png}
+\caption{True underlying regimes (for reference only), projected onto the same PCA space.}
+\label{fig:kmeans_true}
+\end{figure}
+
+These results demonstrate that k-means partially recovers the underlying structure, producing meaningful clusters suitable for downstream trading applications.
+
+\subsection{Disadvantages}
+k-means assumes spherical, equally sized clusters with similar variances, assumptions often violated in financial data exhibiting heavy tails or asymmetric distributions. The algorithm is sensitive to initial centroid placement (mitigated by multiple restarts in modern implementations) and requires pre-specifying k, which may not be known a priori.
+
+It performs poorly with non-convex or irregularly shaped clusters and is sensitive to outliers, which are common in returns data. Distance-based measures treat all features equally after standardisation, potentially overlooking domain-specific importance. Finally, the hard assignment of points ignores cluster uncertainty.
+
+\subsection{Equations}
+The objective of k-means is to minimise the within-cluster sum of squares:
+
+\[
+J = \sum_{i=1}^{k} \sum_{x \in C_i} \| x - \mu_i \|^2_2
+\]
+
+where \( k \) is the number of clusters, \( C_i \) is the set of points assigned to cluster \( i \), and \( \mu_i \) is the centroid:
+
+\[
+\mu_i = \frac{1}{|C_i|} \sum_{x \in C_i} x
+\]
+
+The algorithm alternates between assignment:
+
+\[
+r_{ni} = 
+\begin{cases} 
+1 & \text{if } i = \arg\min_j \| x_n - \mu_j \|^2_2 \\
+0 & \text{otherwise}
+\end{cases}
+\]
+
+and centroid update until convergence.
+
+\subsection{Features}
+k-means is fast and memory-efficient (O(nkd) per iteration), guarantees convergence to a local minimum, produces interpretable cluster centroids (prototypical assets), and works well after feature standardisation. Modern implementations include multiple initialisations to reduce sensitivity to starting points.
+
+It handles moderate-sized datasets easily but requires careful preprocessing (scaling, outlier treatment) in financial contexts.
+
+\subsection{Guide}
+\begin{itemize}
+  \item \textbf{Inputs:}
+  \begin{enumerate}
+    \item Data matrix \( X \) (n × d): observations as rows (e.g., stocks × return days or characteristics)
+    \item Number of clusters \( k \)
+    \item Optional: initial centroids, maximum iterations
+  \end{enumerate}
+  \item \textbf{Outputs:}
+  \begin{enumerate}
+    \item Cluster labels (n × 1 vector)
+    \item Cluster centroids (k × d matrix)
+    \item Final inertia (total within-cluster variance)
+    \item Number of iterations to convergence
+  \end{enumerate}
+\end{itemize}
+
+
+
+\subsection{Hyperparameters}
+\begin{itemize}
+  \item \textbf{Primary hyperparameter:} n\_clusters (k) – the number of clusters to form.
+  \item \textbf{Additional parameters:}
+  \begin{itemize}
+    \item init – initialisation method ('k-means++' recommended or 'random')
+    \item n\_init – number of random initialisations (default 'auto' or 10)
+    \item max\_iter – maximum iterations (default 300)
+    \item tol – tolerance for convergence (default 1e-4)
+    \item algorithm – 'lloyd' (standard) or 'elkan' (faster for dense data)
+  \end{itemize}
+\end{itemize}
+
+In practice, k is often selected via elbow method, silhouette score, or domain knowledge.
+
+\subsection{Illustration}
+The mechanism of k-means is commonly illustrated by alternating assignment and update steps, often shown as Voronoi diagrams evolving toward stable partitions.
+
+The computational example provides direct visualisation:
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{/Users/alberto/Documents/projects/GWP_1/MLFinance/MLFinance/gwp1-2/kmeans_cluster_scatter.png}
+\caption{Resulting clusters in PCA-reduced space.}
+\end{figure}
+
+Standard references depict centroid updates and the convergence process (e.g., iterative relocation of prototypes until stability).
+
+\subsection{Journal}
+Avellaneda, Marco, and Jeong-Hyun Lee. “Statistical arbitrage in the US equities market.” Quantitative Finance 10.7 (2010): 761–782. https://doi.org/10.1080/14697680903124632.
+
+This seminal paper applies \textbf{principal component analysis} to daily returns of US equities to extract statistical risk factors, constructing mean-reverting portfolios for statistical arbitrage and demonstrating consistent profitability over multiple years.
+
+\subsection{Keywords}
+k-means, unsupervised learning, partitioning clustering, centroid-based, clustering, segmentation, prototype clustering, market regime detection, asset grouping, exploratory analysis
+
+
+\section{Principal Component Analysis}
+\subsection{Basics}
+Principal Component Analysis is a dimensionality reduction technique that belongs to the class of unsupervised linear transformation methods. It identifies orthogonal axes (principal components) that sequentially maximise the variance of the projected data. The first principal component captures the direction of greatest variance, the second captures the greatest remaining variance orthogonal to the first, and so forth. PCA is equivalent to the singular value decomposition of the centred data matrix and is commonly used for decorrelation, noise reduction, and feature extraction.
+
+\subsection{Advantages}
+Principal Component Analysis offers powerful advantages in quantitative finance. It extracts latent risk factors from highly collinear return datasets, enabling construction of statistical factor models with minimal assumptions. By focusing on directions of maximum variance, PCA effectively denoises data, separates systematic from idiosyncratic components, and facilitates robust covariance matrix estimation—critical for portfolio optimisation in high-dimensional asset universes.
+
+The technique supports hedging market-wide risks through factor-mimicking portfolios and underpins statistical arbitrage strategies. Being linear and unsupervised, it scales efficiently and provides interpretable orthogonal factors, enhancing risk management, index replication, and signal compression without overfitting concerns associated with supervised methods.
+
+\subsection{Computation}
+A Python illustration was performed on synthetic returns data for 500 assets over 252 trading days, generated from five latent factors of decreasing importance plus idiosyncratic noise.
+
+After standardisation, PCA revealed that the first five components explained 5.8\% of total variance, the first ten explained 10.9\%, and 167 components were required to capture 90\% of variance—consistent with diversified equity markets where many weak factors contribute.
+
+Four diagnostic plots were generated and saved:
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{/Users/alberto/Documents/projects/GWP_1/MLFinance/MLFinance/gwp1-2/pca_scree_plot.png}
+\caption{Scree plot of eigenvalues, showing rapid initial decay and Kaiser criterion reference.}
+\label{fig:pca_scree}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{/Users/alberto/Documents/projects/GWP_1/MLFinance/MLFinance/gwp1-2/pca_cumulative_variance.png}
+\caption{Cumulative explained variance ratio, highlighting the number of components needed for substantial coverage.}
+\label{fig:pca_cumvar}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{/Users/alberto/Documents/projects/GWP_1/MLFinance/MLFinance/gwp1-2/pca_asset_projection.png}
+\caption{Projection of assets onto the first two principal components, illustrating separation along dominant risk directions.}
+\label{fig:pca_projection}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{/Users/alberto/Documents/projects/GWP_1/MLFinance/MLFinance/gwp1-2/pca_loadings_heatmap.png}
+\caption{Heatmap of loadings for the first three principal components across the first 20 assets.}
+\label{fig:pca_loadings}
+\end{figure}
+
+These results demonstrate PCA's ability to identify dominant statistical factors in realistic financial covariance structures.
+
+\subsection{Disadvantages}
+PCA is sensitive to scaling and outliers, requiring careful preprocessing. As a purely linear method, it cannot capture non-linear relationships without kernel extensions. Interpretability of components is often limited—they represent statistical rather than economic factors—necessitating rotation or domain expertise for meaningful labelling.
+
+The assumption of orthogonality may not align with real-world correlated risks, and performance degrades with non-Gaussian heavy-tailed returns common in finance. Finally, explained variance does not guarantee predictive power for future returns.
+
+\subsection{Equations}
+PCA solves the eigenvalue decomposition of the sample covariance matrix:
+
+\[
+\Sigma = \frac{1}{n-1} X^\top X
+\]
+
+where \( X \) is the centred (and usually standardised) data matrix. The principal components are the eigenvectors \( v_k \) ordered by decreasing eigenvalues \( \lambda_k \):
+
+\[
+\Sigma v_k = \lambda_k v_k
+\]
+
+The scores are \( Z = X V \), where \( V \) contains eigenvectors as columns, and explained variance ratio for component \( k \) is \( \lambda_k / \sum \lambda_i \).
+
+Equivalently, PCA minimises reconstruction error:
+
+\[
+\min \| X - Z V^\top \|^2_F
+\]
+
+subject to \( V^\top V = I \).
+
+\subsection{Features}
+PCA provides orthogonal, uncorrelated components; ranks features by explained variance; achieves optimal linear dimensionality reduction (minimum reconstruction error); handles high-dimensional data efficiently; separates signal from noise; and supports robust covariance estimation via shrinkage toward diagonal structure.
+
+It requires no hyperparameter tuning beyond the number of components and works well after standardisation.
+
+\subsection{Guide}
+\textbf{Inputs:}
+\begin{itemize}
+\item Data matrix \( X \) (n × p), typically centred and standardised (e.g., asset returns)
+\item Optional: desired number of components
+\end{itemize}
+
+\textbf{Outputs:}
+\begin{itemize}
+\item Principal components (loadings matrix \( V \))
+\item Component scores (transformed data \( Z \))
+\item Explained variance and ratios per component
+\item Reconstructed data for selected components
+\end{itemize}
+
+\subsection{Hyperparameters}
+PCA has few hyperparameters. Primary choice is n\_components: number of components to retain (integer or float fraction of variance, e.g., 0.90).
+
+Additional parameters include:
+\begin{itemize}
+\item whiten: whether to scale components to unit variance
+\item svd\_solver: 'auto', 'full', 'arpack', or 'randomized' (for large datasets)
+\end{itemize}
+
+Component selection is guided by scree plots, cumulative variance thresholds (e.g., 90\%), or cross-validated reconstruction error.
+
+\subsection{Illustration}
+The essence of PCA is visualised through scree plots and biplots showing data projection onto leading components.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{/Users/alberto/Documents/projects/GWP_1/MLFinance/MLFinance/gwp1-2/pca_scree_plot.png}
+\caption{Scree plot from the computational example.}
+\end{figure}
+
+Classic illustrations include the rotation of axes to maximise variance and geometric interpretation of variance ellipsoids (see Jolliffe, Principal Component Analysis, 2002).
+
+\subsection{Journal}
+Avellaneda, Marco, and Jeong-Hyun Lee. “Statistical arbitrage in the US equities market.” Quantitative Finance 10.7 (2010): 761–782. https://doi.org/10.1080/14697680903124607.
+
+This seminal paper applies PCA to daily returns of US equities to extract statistical risk factors, constructing mean-reverting portfolios for pairs trading and demonstrating consistent profitability over multiple years.
+
+\subsection{Keywords}
+PCA, principal components, dimensionality reduction, unsupervised learning, orthogonal transformation, variance maximisation, factor model, risk factors, decorrelation, noise filtering, statistical arbitrage
+
+\section{Technical Section}
+Hyperparameter tuning constitutes a critical phase in the deployment of machine learning models within quantitative trading frameworks. The objective is to select parameter values that optimise out-of-sample performance, mitigate overfitting, and ensure robustness across varying market conditions.
+
+Common approaches include grid search, random search, and Bayesian optimisation. In financial applications, k-fold cross-validation is frequently employed, though time-series-specific methods such as purged walk-forward or combinatorial purged cross-validation are preferred to avoid look-ahead bias and overfitting to specific historical periods.
+
+For LASSO regression, the primary hyperparameter is alpha ($\lambda$), which governs the strength of the L1 penalty. Larger values increase sparsity but introduce greater bias. In the illustration, a fixed alpha of 0.1 selected 5 features, whereas LassoCV automatically chose a milder alpha of approximately 0.0175, retaining 10 features and reflecting a data-driven balance between regularisation and fit.
+
+In k-means clustering, the dominant hyperparameter is n\_clusters (k), the number of partitions. Selection often relies on heuristic methods such as the elbow plot, silhouette score, or gap statistic. The computational example employed k=3 based on domain knowledge of simulated regimes, supplemented by an elbow analysis across k=1 to 10. Additional parameters include n\_init (number of random initialisations, typically 10 or 'auto') and init ('k-means++' for improved convergence).
+
+Principal Component Analysis requires minimal tuning, with the principal choice being n\_components. This may be specified directly (e.g., retain the first five factors) or indirectly via a variance threshold (e.g., components explaining 90\% of variance). In the example, 167 components were needed to reach 90\%, illustrating the diffuse risk structure in diversified portfolios. The svd\_solver parameter ('auto', 'randomized' for large datasets) influences computational efficiency but not the solution itself.
+
+In practice, hyperparameter optimisation is embedded within a rigorous backtesting framework, with performance evaluated on information ratios, turnover, and drawdowns rather than purely statistical metrics.
+
+\section{Marketing Alpha}
+Investment managers operating in increasingly competitive and data-rich markets require methodologies that deliver consistent, interpretable, and scalable alpha while managing risk and implementation costs. The machine learning techniques examined in this handbook—LASSO regression, k-means clustering, and principal component analysis—address precisely these requirements, offering complementary strengths that enhance systematic trading strategies.
+
+LASSO regression excels in high-dimensional predictor spaces, automatically selecting a sparse subset of truly informative signals from hundreds of potential factors. By shrinking irrelevant coefficients to zero, it produces focused, low-turnover models that reduce transaction costs and improve out-of-sample generalisation. In environments where traditional ordinary least squares fails due to multicollinearity or overparameterisation, LASSO maintains stability and interpretability, enabling managers to construct robust cross-sectional equity, fixed-income, or multi-asset forecasts with confidence.
+
+k-means clustering provides an unsupervised lens for discovering structure within asset universes. Without relying on labelled outcomes, it identifies natural peer groups, market regimes, or style clusters that inform dynamic allocation and risk modelling. Portfolio construction can then tilt toward clusters exhibiting favourable characteristics or hedge against adverse regimes. The algorithm’s efficiency permits frequent re-clustering, supporting adaptive strategies that respond to evolving market dynamics while preserving diversification benefits.
+
+Principal component analysis serves as a cornerstone for risk factor extraction and dimensionality reduction. By transforming correlated returns into orthogonal components ordered by explanatory power, PCA reveals dominant systematic drivers and separates them from idiosyncratic noise. This facilitates construction of factor-mimicking portfolios, robust covariance estimation for mean-variance optimisation, and statistical arbitrage opportunities through mean-reversion in higher-order components. Its denoising properties prove particularly valuable in volatile or low-signal regimes.
+
+Collectively, these methods form a powerful toolkit. LASSO delivers predictive edge through sparse signal selection, k-means enhances segmentation and adaptability, and PCA provides risk decomposition and compression. Integrated appropriately—for instance, using PCA to preprocess features before LASSO, or clustering assets prior to regime-specific forecasting—these techniques generate superior risk-adjusted returns relative to traditional approaches. Their mathematical transparency supports regulatory compliance and client communication, while computational tractability enables deployment across broad asset classes.
+
+In an era dominated by passive replication and crowded factors, the disciplined application of such machine learning methodologies offers a sustainable path to differentiated alpha generation.
+
+\section{Learn More}
+
+\begin{thebibliography}{9}
+
+\bibitem{gu2020}
+Gu, Shihao, Bryan Kelly, and Dacheng Xiu. ``Empirical Asset Pricing via Machine Learning.'' \textit{The Review of Financial Studies}, vol. 33, no. 5, 2020, pp. 2223--2273, https://doi.org/10.1093/rfs/hhaa009.
+
+\bibitem{thong2023}
+Thong, Tran Viet, and Chih-Wei Ho. ``Pairs trading via unsupervised learning.'' \textit{European Journal of Operational Research}, vol. 307, no. 2, 2023, pp. 929--947, https://doi.org/10.1016/j.ejor.2022.09.014.
+
+\bibitem{avellaneda2010}
+Avellaneda, Marco, and Jeong-Hyun Lee. ``Statistical arbitrage in the US equities market.'' \textit{Quantitative Finance}, vol. 10, no. 7, 2010, pp. 761--782, https://doi.org/10.1080/14697680903124632.
+\bibitem{pedregosa2011}
+Pedregosa, Fabian, et al. ``Scikit-learn: Machine Learning in Python.'' \textit{Journal of Machine Learning Research}, vol. 12, 2011, pp. 2825--2830, scikit-learn.org/stable/.
+
+\bibitem{quantinsti_ml}
+``Machine Learning for Algorithmic Trading in Python: A Complete Guide.'' \textit{QuantInsti Blog}, blog.quantinsti.com/trading-using-machine-learning-python/.
+
+\bibitem{quantinsti_rl}
+``Evolving Quantitative Trading with Deep Reinforcement Learning.'' \textit{QuantInsti Blog}, blog.quantinsti.com/quantitative-trading-deep-reinforcement-learning-quantra-success-story-mattia-mosolo/.
+
+\end{thebibliography}
+\end{document}
