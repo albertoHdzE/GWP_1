@@ -1,0 +1,21 @@
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{p{0.34\linewidth} p{0.60\linewidth}}
+\toprule
+\textbf{Item} & \textbf{Value}\\
+\midrule
+Security & \textbf{SPY}\\
+Data source & Yahoo Finance via \texttt{yfinance} (auto-adjusted)\\
+Frequency & Daily\\
+Sample & 2018-02-15 -- 2025-12-31\\
+Observations & 1980\\
+Project constraint & $\leq 2000$ observations (satisfied)\\
+Lookback window & 32 observations\\
+Label horizon & 1 observation(s) ahead\\
+Target definition & $y_t=\mathbb{1}[r_{t+1}>0]$; class-1 rate=0.553\\
+Feature set & ret, ret\_mean\_5, ret\_mean\_10, ret\_mean\_20, ret\_std\_5, ret\_std\_10, ret\_std\_20, rsi\_14, macd, macd\_signal, log\_volume, log\_volume\_z20\\
+Trading cost assumption & 5.0 bps per unit turnover\\
+\bottomrule
+\end{tabular}
+\end{table}

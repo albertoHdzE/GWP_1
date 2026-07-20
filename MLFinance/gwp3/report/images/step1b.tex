@@ -1,0 +1,4 @@
+We constructed a leaky modeling setup to show backtest overfitting due to information leakage.
+We standardize features using a \textbf{single scaler fit on the full dataset} (train+test) before splitting, so statistics from the future test period influence the training representation.
+For the CNN+GAF model, we also normalize returns using global min/max over the full sample when mapping windows into Gramian Angular Field images; this similarly contaminates the feature construction with future information.
+This leakage can inflate apparent predictive accuracy and trading performance because the model indirectly benefits from knowledge of the test distribution, a common pitfall in financial ML research and backtesting (L\'opez de Prado; Bailey et al.).

@@ -1,0 +1,8 @@
+We reduce leakage by enforcing time-series-safe preprocessing and split hygiene:
+\begin{itemize}
+\item Fit feature scalers inside each fold using the training window only, then transform training and test separately.
+\item Purge: drop the last \(h\) observations of each training window (where \(h\) is the label horizon) so labels cannot overlap the test period.
+\item Embargo for lookback: skip the first 32 observations of each test window so test samples cannot reuse lookback information from the training boundary.
+\item For GAF images, normalize returns using training-only min/max per fold (no global min/max).
+\end{itemize}
+These practices follow time-series cross-validation guidance for financial ML (purging/embargo and leakage control) (L\'opez de Prado).

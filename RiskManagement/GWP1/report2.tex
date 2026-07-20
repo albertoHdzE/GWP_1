@@ -1,0 +1,564 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[british]{babel}
+\usepackage{geometry}
+\geometry{margin=1in}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+\title{Risk Management \\ Group Work Project 1}
+\author{Ge Zhang \\ Alberto Hernandez-Espinosa}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+
+
+\section*{On AI Usage}
+
+This research made use of artificial intelligence tools in three 
+specific capacities: (i) to assist with literature search and verification 
+of academic sources and datasets; (ii) to help refine and optimize algorithmic 
+implementations during the structure learning phase; and (iii) for grammar, 
+spelling, and style corrections, particularly for itemized content where precision 
+in phrasing mattered.
+
+All intellectual contributions, theoretical framing, empirical analysis, 
+and final interpretations are entirely our own. The AI tools served only as 
+supporting aids, not as co-authors, and we assume full responsibility for any errors or omissions.
+
+
+
+\section{Problem Formulation}
+The global crude oil market is among the most complex and closely watched commodity systems out 
+there. Unlike your typical financial equities, crude oil’s spot price isn’t just about 
+discounting expected future cash flows—it acts more like a vital macroeconomic pulse, 
+shaping industrial costs, swaying inflation, and even nudging geopolitical decisions. 
+So, trying to forecast crude oil prices isn’t really a straightforward time-series 
+exercise. What’s needed is a broader framework, one that can tease apart 
+how macroeconomic forces, supply-chain mechanics at the micro level, and 
+unexpected geopolitical events all intertwine.
+
+\subsection{Limitations of Traditional Econometric Approaches}
+
+Looking back at how quantitative analysts and economists have approached 
+this problem, they've tended to lean on familiar workhorses like ARIMA 
+and GARCH models. There's no denying these are mathematically solid and 
+they do a decent job picking up things like volatility clustering or mean reversion. 
+But if we apply them to today's oil market — which is driven by so many interconnected 
+variables — they start to show their weaknesses.
+
+One big issue is that these models are fundamentally atheoretical. They're 
+good at finding statistical correlations but they don't really tell you anything 
+about causation. The GARCH model, for example, it might predict that volatility 
+will carry on being volatile, but it can't explain \textit{why} a supply 
+disruption in the Middle East ends up affecting refinery margins in the U.S. 
+The causal pathway just isn't there.
+
+Another problem is how they handle data at different frequencies and 
+structural breaks. If we get macroeconomic data like GDP or CPI coming out monthly 
+or quarterly, while futures prices are updating every second. Mixing those 
+together is messy. And then you've got these sudden regime shifts, the 2014 shale 
+revolution, or the demand collapse during COVID, which completely break the 
+stationarity assumptions that these classical models depend on.
+
+Plus, we can see that these models don't handle missing data well at all. 
+And when we put aññ together global microeconomic data, especially from countries 
+that aren't exactly transparent about their inventory levels, missing values are 
+pretty much the norm.
+
+\subsection{The Suitability of Probabilistic Graphical Models}
+
+To get around these limitations, the proposal is a Probabilistic Graphical Models (PGMs), 
+specifically Belief Networks (Bayesian Networks). PGMs give us a elegant way to combine 
+graph theory with probability theory, which lets us represent complex, 
+high-dimensional joint distributions in a compact form.
+
+A Belief Network is basically a Directed Acyclic Graph (DAG). The nodes are 
+ random variables, as OPEC production quotas, interest rates from the Fed, 
+ or the Brent-WTI spread, and the directed edges show conditional dependencies 
+ and causal influences. What makes this architecture so powerful is the local 
+ Markov property: once you condition on its parents, a node becomes independent 
+ of all its non-descendants. This drastically cuts down the computational complexity, 
+ turning what would be an intractable joint distribution into a product of much 
+ simpler conditional probability distributions.
+
+\subsection{Advantages of the Proposed Methodology}
+
+There are several concrete advantages to using Belief Networks for forecasting 
+crude oil prices, especially when we look at it through the three lenses of 
+macroeconomic, microeconomic, and financial specialisation.
+
+\subsubsection{Advantages of the Proposed Methodology}
+
+\textbf{Interpretability:} Unlike deep neural networks or other black-box approaches, 
+PGMs give us transparent causal pathways that you can actually trace and understand. 
+Through structure learning, the model can spot hidden dependencies in the data 
+that might either confirm or challenge existing economic theories. 
+For someone managing a portfolio or making policy decisions, being able to 
+visualise exactly how a shock to the US Dollar Index flows through to oil demand 
+in emerging markets, that's invaluable for running scenarios and stress tests.
+
+\textbf{handling of uncertainty and missing data}. Because Belief Networks are 
+probabilistic by nature, they keep working even when some variables aren't observed. 
+Say weekly crude stock data is late or just not available, the network can still 
+marginalise over that uncertainty and give you a probability distribution for the 
+spot price. That's way more useful than a single point estimate that might be completely off.
+
+\textbf{Blend expert knowledge with data-driven learning: } 
+The algorithm figure out the structure from the data, but  
+also impose constraints based on what we know about the world. 
+For example, it might be possible to 
+specify that geopolitical risk can influence supply, but actually the supply can't 
+ change past geopolitical events. That kind of guidance helps the model avoid 
+picking up spurious correlations that don't make economic sense.
+
+\textbf{Regime-switching angle}. Combining 
+PGMs with latent variable models like Hidden Markov Models, this framework 
+could be adapted to a different market conditions on the fly, whether we're in contango 
+or backwardation, or during high-volatility crisis periods versus calmer growth phases. 
+Energy markets are notoriously non-linear, and this gives us a way to 
+capture those changing dynamics.
+
+So overall, the idea is to build something that's not just statistically 
+sophisticated but also causally informed and robust to the kind of messiness 
+you inevitably run into with real-world data.
+
+To sum up, the core aim here is to move beyond purely statistical time-series 
+forecasting, building a framework that's causally aware and probabilistically robust. 
+By learning both the structure and parameters of a Belief Network from a 
+dataset that spans macroeconomic, microeconomic, and financial domains.
+
+
+
+
+
+
+
+
+
+
+\section{Data Identification, Sources and Perspectives}
+
+We broked down the data  
+into three distinct angles: the macroeconomic and geopolitical side, 
+the microeconomic side, and the financial side. Each one brings 
+something different to the table.
+
+\subsection{Macroeconomic and Geopolitical Perspective}
+
+This lens is all about the big picture: sovereign policies, 
+global systemic drivers, that sort of thing. We're looking at variables 
+like the Consumer Price Index (CPI) and the Federal Funds Rate, which 
+provide a sense of the broader inflationary environment and the cost of capital. 
+Those are the kinds of things that shape global aggregate demand. Industrial 
+Production is another key one; it's a pretty direct measure of real 
+economic activity and how much energy the manufacturing sector is consuming. 
+We've also included the US Dollar Index, and that's because crude oil is priced 
+in dollars globally. So when the dollar's purchasing power shifts, it 
+feeds back into nominal oil prices, usually in the opposite direction, 
+and changes how demand behaves in emerging markets.
+
+\subsection{Microeconomic Perspective}
+
+Trying to gethigh-frequency microeconomic data, like individual 
+refinery margins or real-time rig counts is a challenge by itself. 
+Reporting lags, proprietary restrictions, it's a whole thing. But even without 
+that granular level of detail, we can still capture the physical market balance 
+through the WTI spot price and the futures curves. The relationship between 
+commercial inventory levels and extraction costs tends to shape short-term 
+physical supply responses, and that ultimately shows up in the volatility of 
+spot and near-month futures contracts.
+
+\subsection{Financial Perspective}
+
+We're using front-month WTI and Brent crude futures 
+contracts to get at market sentiment, where speculative positions are 
+sitting, and the geographical arbitrage play, that's the Brent-WTI spread. 
+These instruments reflect how the market prices risk at the margin, 
+and they tend to react pretty sharply to macroeconomic news and geopolitical developments.
+
+
+
+
+
+\section{Data Dictionary and Summary Table}
+
+We pulled the raw data from two main sources. For the high-frequency market stuff, 
+we went with Yahoo Finance, because it's reliable and gives us good coverage. 
+For the macroeconomic indicators, we used the Federal Reserve Economic Data (FRED) 
+repository, which is pretty much the gold standard for that kind of thing. 
+
+Now, one challenge was getting everything to line up properly. The market data 
+comes in at daily frequency, but the macro stuff is monthly. So we aligned all 
+the daily observations to a monthly frequency using the Month-End convention 
+(that's the \texttt{ME} approach). This way everything syncs up nicely with 
+the macroeconomic releases. This resulted in a balanced panel of 199 monthly 
+observations, covering January 2010 right through to the present. 
+
+Table \ref{tab:data_summary} below gives a full dictionary of all the variables 
+we've integrated into the unified dataset.
+
+
+\begin{table}[H]
+\centering
+\caption{Data Dictionary and Summary of Key Variables}
+\label{tab:data_summary}
+\renewcommand{\arraystretch}{1.3}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}lllll@{}}
+\toprule
+\textbf{Variable (Ticker)} & \textbf{Description} & \textbf{Native Freq.} & \textbf{Source} & \textbf{Date Range} \\
+\midrule
+\texttt{WTI\_CL} & WTI Crude Oil Futures (Front Month) & Daily & Yahoo Finance & 2010-01 to Present \\
+\texttt{Brent\_BZ} & Brent Crude Oil Futures (Front Month) & Daily & Yahoo Finance & 2010-01 to Present \\
+\texttt{USD\_Idx} & US Dollar Index (Basket of Currencies) & Daily & Yahoo Finance & 2010-01 to Present \\
+\texttt{CPI} & Consumer Price Index for All Urban Consumers & Monthly & FRED (CPIAUCSL) & 2010-01 to Present \\
+\texttt{Fed\_Funds} & Effective Federal Funds Rate & Monthly & FRED (FEDFUNDS) & 2010-01 to Present \\
+\texttt{Ind\_Prod} & Industrial Production Index & Monthly & FRED (INDPRO) & 2010-01 to Present \\
+\texttt{WTI\_Spot} & Spot Price of WTI Crude Oil & Daily & FRED (DCOILWTICO) & 2010-01 to Present \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+
+
+
+
+\section{Data Preprocessing and Cleaning}
+
+So we followed a sterilisation protocol of athree-stage cleaning process:
+\begin{enumerate}
+    \item Extreme Outlier Identification and Clipping
+    \item Bad Data and Duplicated Indices
+    \item Missing Values and Temporal Interpolation
+\end{enumerate}
+
+\subsection{Extreme Outlier Identification and Clipping}
+
+We went with the Interquartile Range (IQR) method. The bounds were 
+set at $Q1 - 3 \times IQR$ and $Q3 + 3 \times IQR$. 
+We used factor of 3 used for standard boxplots because commodity returns 
+are inherently leptokurtic, they have these fat tails where extreme 
+price movements, while statistically rare, are actually 
+economically meaningful. Considering for example the 2008 financial crisis 
+or the COVID demand shock in 2020; those weren't outliers in the sense of 
+"bad data," they were real events.
+
+When we ran the preprocessing pipeline, only two extreme values 
+got flagged and clipped across the whole dataset. That's a pretty low 
+number, which tells us the FRED and Yahoo Finance feeds are good quality. 
+The values we clipped were most likely flash-crash anomalies or 
+erroneous ticks that the exchanges later corrected, not genuine structural market events.
+
+\subsection{Bad Data and Duplicated Indices}
+
+W aligned everything to the last business day of each month, then the chances 
+of duplicated chronological indices were already pretty low. 
+We confirm with zero duplicated indices in both the raw and aggregated dataframes, 
+so we ended up with a strictly monotonic time-series progression. No issues there.
+
+\subsection{Missing Values and Temporal Interpolation}
+
+We used time-based interpolation for to go with mean or median imputation. 
+By this approach we aimed to destroy the temporal autocorrelation structure,
+which is kind of a big deal for financial time series. Time-based interpolation, 
+on the other hand, respects the chronological distance between known data points. For 
+any remaining missing values at the very beginning or end of the dataset, 
+we used forward-filling and backward-filling. After all this, we had a complete, 
+balanced panel dataset with no null values, ready for exploratory analysis and probabilistic modelling.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{figures/cleaned_wti_price.png}
+\caption{Sterilised WTI Crude Oil Futures Price (2010--Present). The blue line represents the robust, outlier-clipped series, demonstrating the preservation of major structural breaks such as the 2014 shale glut and the 2020 pandemic crash.}
+\label{fig:cleaned_wti}
+\end{figure}
+
+
+
+
+
+\section{Exploratory Data Analysis}
+
+Once we had the sterilised monthly dataset put together, we dove into 
+a thorough Exploratory Data Analysis (EDA) in order to the underlying 
+statistical properties of the crude oil market. We broke it down into 
+distributional, temporal, and multivariate dimensions, and by the end of it, 
+we'd identified the key stylised facts that tend to characterise energy commodities.
+
+\subsection{Distributional and Temporal Analysis}
+
+Figure \ref{fig:returns_dist} a non-Gaussian. The monthly percentage returns 
+have this pronounced leptokurtic shape. This is, there's a sharp peak around the mean, 
+but then these heavy, asymmetric tails on either side. So oil prices can 
+cruise along with relative stability for months at a time, but they're also 
+prone to these sudden, violent shocks in either direction.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.8\textwidth]{figures/returns_distribution.png}
+\caption{Distribution of Monthly WTI Percentage Returns. The pronounced kurtosis and fat tails demonstrate the failure of normal distribution assumptions in energy markets.}
+\label{fig:returns_dist}
+\end{figure}
+
+The time-series plot of the sterilised WTI price (Figure \ref{fig:cleaned_wti}) 
+tells an interesting story: several distinct market regimes playing out. 
+From 2010 to 2014, prices were consistently high, fuelled by strong demand 
+from emerging markets. Then came the structural break in late 2014, that's when 
+the US shale revolution really kicked in, leading to a supply glut. 
+And looking at early 2020, that's where things get really wild. 
+Unprecedented demand destruction met storage capacity constraints, and futures 
+prices briefly went negative. Something not very common.
+
+\subsection{Multivariate Dependencies}
+
+To get a sense of how the macroeconomic, microeconomic, and financial variables 
+interact with each other, we generated a correlation matrix of the monthly 
+percentage returns.
+
+Figure \ref{fig:corr_heatmap} confirms what economic theory would predict. The 
+most obvious relationship is the persistent negative correlation between 
+the US Dollar Index and both WTI and Brent returns. Makes sense when 
+considering oil's priced in dollars, so when the dollar strengthens, oil becomes 
+more expensive for anyone holding foreign currency. That tends to dampen 
+demand and push prices down. On the flip side, industrial production and 
+inflation metrics generally show positive correlations with energy prices, 
+though there's usually a lag. That reflects the derived demand for crude 
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.8\textwidth]{figures/correlation_heatmap.png}
+\caption{Correlation Heatmap of Monthly Returns. Notable inverse relationships are observed between the US Dollar Index and crude oil returns, validating the financial transmission mechanism of currency fluctuations.}
+\label{fig:corr_heatmap}
+\end{figure}
+
+
+
+\subsection{Stylised Facts of Oil Prices}
+
+Based on everything we saw in the EDA, we can pin down some stylised facts 
+about crude oil prices. Any forecasting model worth its salt, including our 
+proposed Belief Network — needs to be able to capture these:
+
+\begin{enumerate}
+    \item \textbf{Volatility Clustering and Structural Breaks:} Unlike standard 
+    equity markets, oil prices are highly susceptible to exogenous supply shocks 
+    and geopolitical events. This results in distinct periods of extreme 
+    volatility clustering, separated by structural breaks where the underlying 
+    data-generating process fundamentally shifts (e.g., the transition 
+    from a supply-constrained market to a demand-constrained market).
+    \item \textbf{Non-Normal Return Distributions:} Oil returns are distinctly 
+    non-Gaussian. They exhibit high kurtosis (fat tails) and skewness, 
+    meaning that extreme events (e.g., a $>20\%$ monthly move) occur far 
+    more frequently than a normal distribution would predict.
+    \item \textbf{Weak Autocorrelation in Returns, Strong Persistence in Volatility:} 
+    The raw monthly returns show very low linear autocorrelation, 
+    suggesting that the market is highly efficient and past price 
+    directions do not easily predict future directions. However, the squared 
+    returns (a proxy for volatility) exhibit strong positive autocorrelation. 
+    This confirms that while the direction of the price change is unpredictable, 
+    the magnitude of the change is highly persistent.
+    \item \textbf{Macroeconomic and Financial Sensitivity:} Oil prices do not 
+    exist in a vacuum. They are deeply sensitive to the cost of capital 
+    (interest rates), global industrial activity, and currency fluctuations 
+    (USD strength). The causal propagation of these variables is non-linear 
+    and regime-dependent, necessitating a modelling framework capable of 
+    handling complex conditional dependencies.
+\end{enumerate}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\section{Probabilistic Graphical Models}
+
+Looking at everything through those three lenses we've been using macroeconomic, 
+microeconomic, and financial. The goal here is to lay down the mathematical 
+and conceptual foundations we need to model the complex, interdependent 
+dynamics of the global crude oil market.
+
+\subsection{Macroeconomic and Geopolitical Perspective: Foundations of Probabilistic Graphical Models}
+
+Looking at the global oil market from a macroeconomic and geopolitical angle, 
+it's really just a giant web of interdependent variables. Sovereign policies, 
+aggregate demand, geopolitical shocks, they all propagate through these intricate 
+causal pathways. Probabilistic Graphical Models (PGMs) give us a way to 
+represent that kind of system mathematically. They combine graph theory with 
+probability theory, letting us compactly represent a joint probability 
+distribution over a high-dimensional set of random variables. It map 
+variables to nodes, probabilistic dependencies to edges for visualising and 
+compute how macroeconomic shocks cascade through the system.
+
+PGMs generally fall into two broad families: Belief Networks and Markov Networks.
+
+\begin{itemize}
+    \item \textbf{Belief Networks (Bayesian Networks):} These are directed acyclic graphs (DAGs). 
+    The directed edges represent explicit causal influence or temporal precedence. 
+    Each node comes with a conditional probability distribution that quantifies 
+    the effect of its parent nodes. For oil markets, Belief Networks are particularly 
+    well suited to modelling asymmetric causal chains. 
+    Ths can be said: a geopolitical conflict (parent) disrupts supply chains (child), 
+    which then drives up inflation (grandchild). The acyclic nature enforces a 
+    logical flow of time and causality, which makes sense for these kinds of problems.
+    \item \textbf{Markov Networks (Markov Random Fields):} These use undirected 
+    graphs and are parameterised by potential functions over cliques of nodes, 
+    rather than conditional probabilities. They're really effective for systems 
+    with simultaneous, bidirectional feedback loops, situations where causal 
+    directionality isn't clear. For example, the mutual influence between global 
+    industrial production and aggregate energy consumption often happens 
+    simultaneously within a given fiscal quarter. Undirected representations are 
+    better at capturing those equilibrium states.
+\end{itemize}
+
+For forecasting crude oil prices, the goal is primarily leveraging Belief Networks. Being 
+able to encode directional causal influence and perform both predictive (forward) 
+and diagnostic (backward) reasoning is pretty essential for macroeconomic scenario analysis.
+
+\subsection{Microeconomic Perspective: Parameter Learning versus Structure Learning}
+
+From microeconomic lens, its possible to look at individual actors, refinery utilisation 
+rates, inventory drawdowns, upstream capital expenditure, that sort of thing. 
+To capture these dynamics accurately within a PGM, that we need to deal with in 
+two distinct phases of model construction: parameter learning and structure learning.
+
+\textbf{Parameter Learning} assumes you already know the structural topology 
+of the graphical model, the DAG, maybe from established microeconomic theory or
+ expert consensus. Then it's just a matter of estimating the numerical parameters 
+ of the conditional probability distributions from the observed data. 
+ This is done, typically with Maximum Likelihood Estimation (MLE) or Bayesian 
+ estimation techniques. Say economic theory tells that commercial inventory 
+ levels directly influence short-term spot price volatility. Parameter learning 
+ will quantify the exact magnitude and variance of that relationship 
+ based on historical microeconomic data.
+
+\textbf{Structure Learning}, This is about discovering the underlying graphical 
+topology directly from the data. A hard computational problem due the space of 
+possible DAGs grows super-exponentially with the number of variables. Structure 
+learning algorithms generally come in two flavours: constraint-based methods 
+(which use statistical conditional independence tests to eliminate edges) 
+and score-based methods (which search the graph space to optimise a goodness-of-fit 
+metric penalised for complexity, like the Bayesian Information Criterion). 
+For the crude oil market, structure learning is incredibly valuable. 
+It lets the model autonomously uncover hidden, non-linear microeconomic 
+dependencies that human analysts might miss, reducing reliance on potentially 
+biased expert input.
+
+\subsection{Financial Specialist Perspective: Markov Chains and Markov Blankets}
+
+From a financial specialist's perspective, crude oil is volatile asset class. 
+Modelling its temporal evolution and feature space requires specific probabilistic 
+tools, namely Markov Chains and the concept of the Markov Blanket.
+
+\textbf{Markov Chains and Hidden Markov Models (HMMs):} A Markov Chain is 
+a stochastic model where the probability of each event depends only on the 
+state attained in the previous event. That's the memoryless property. 
+Now, raw oil prices don't strictly follow a simple Markov Chain because 
+there are long-term memory effects. But the \textit{regimes} of the oil 
+market often do follow one. Hidden Markov Models extend this by positing 
+that the observed financial time series (say, daily returns) is generated 
+by an underlying, unobservable Markov process representing distinct market 
+states. So an HMM can dynamically classify the market into latent regimes, 
+contango/low-volatility, backwardation/high-volatility, that kind of thing. 
+This lets the forecasting model adapt its parameters dynamically based on 
+the current financial regime.
+
+\textbf{The Markov Blanket:} In a Belief Network, the Markov Blanket of 
+a node $X$ is the minimal set of variables that completely shields $X$ 
+from the rest of the network. Specifically, it consists of $X$'s parents, 
+its children, and the other parents of its children (co-parents or spouses). 
+The key property is that, conditional on this set, $X$ is conditionally 
+independent of all other nodes. For a financial specialist building a 
+forecasting model for the WTI spot price, identifying the Markov Blanket 
+of the price node is essentially optimal feature selection. It isolates 
+the exact subset of macroeconomic, microeconomic, and financial indicators 
+that have genuine predictive power, while discarding redundant variables 
+that just add noise to the trading algorithm.
+
+
+
+
+
+
+
+
+\section{Structure Learning: The Inferred Causality Algorithm}
+
+The structure of the Belief Network has to be learned from our sterilised 
+dataset, and that's where the Inferred Causality algorithm comes in. 
+It's a constraint-based approach, rigorous, systematic, designed to uncover 
+the causal DAG by methodically evaluating conditional independencies.
+
+The algorithm works through three sequential phases, and it leans 
+heavily on that Markov Blanket concept. First, it identifies the Markov 
+Blanket for every variable, which drastically cuts down the dimensionality 
+of the search space. Second, it isolates the direct neighbours 
+(parents and children) by filtering out the spouses. Finally, it orients 
+the undirected edges to establish causal directionality, with special 
+attention paid to colliders, those v-structures that tell us a lot about causality.
+
+The formal pseudocode is laid out in Algorithm \ref{alg:inferred_causality} below.
+
+\begin{algorithm}[H]
+\caption{Inferred Causality Structure Learning}
+\label{alg:inferred_causality}
+\begin{algorithmic}[1]
+\Require A dataset $\mathcal{D}$ containing $N$ variables $\mathbf{V} = \{X_1, X_2, \dots, X_N\}$, and a significance level $\alpha$ for conditional independence tests.
+\Ensure A Directed Acyclic Graph (DAG) $\mathcal{G} = (\mathbf{V}, E)$.
+
+\State \textbf{Phase 1: Markov Blanket Discovery}
+\For{each variable $X_i \in \mathbf{V}$}
+    \State Identify the Markov Blanket $\mathcal{MB}(X_i)$ using a forward-backward selection algorithm (e.g., Grow-Shrink or IAMB).
+    \State Enforce symmetry: If $X_j \in \mathcal{MB}(X_i)$ but $X_i \notin \mathcal{MB}(X_j)$, remove the asymmetric dependency based on statistical reliability.
+\EndFor
+
+\State \textbf{Phase 2: Neighbourhood Identification (Undirected Skeleton)}
+\For{each variable $X_i \in \mathbf{V}$}
+    \State Initialise the set of Parents and Children $\mathcal{PC}(X_i) = \mathcal{MB}(X_i)$.
+    \For{each $X_j \in \mathcal{PC}(X_i)$}
+        \State Search for a separating set $\mathbf{S} \subseteq \mathcal{MB}(X_i) \setminus \{X_j\}$ such that $X_i \perp X_j \mid \mathbf{S}$.
+        \If{such a separating set $\mathbf{S}$ is found}
+            \State Remove $X_j$ from $\mathcal{PC}(X_i)$ (identify $X_j$ as a spouse/co-parent).
+            \State Record $\mathbf{S}$ in the separation set table $\mathbf{Sep}(X_i, X_j)$.
+        \EndIf
+    \EndFor
+\EndFor
+\State Construct the undirected skeleton graph $\mathcal{G}_{skel}$ using the validated $\mathcal{PC}$ sets.
+
+\State \textbf{Phase 3: Edge Orientation (V-Structures and Meek's Rules)}
+\For{each unshielded triple $X_i - X_k - X_j$ in $\mathcal{G}_{skel}$}
+    \If{$X_k \notin \mathbf{Sep}(X_i, X_j)$}
+        \State Orient as a collider (v-structure): $X_i \rightarrow X_k \leftarrow X_j$.
+    \EndIf
+\EndFor
+\State Apply Meek's propagation rules to orient remaining edges without creating directed cycles or new v-structures.
+\State \Return The final oriented DAG $\mathcal{G}$.
+\end{algorithmic}
+\end{algorithm}
+
+
+
+
+\bibliographystyle{plain}
+\bibliography{references} % Add bib file later if needed
+
+\end{document}

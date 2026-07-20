@@ -1,0 +1,8 @@
+We use a single chronological train/test split and train three deep learning classifiers:
+\begin{itemize}
+\item \textbf{MLP}: a feed-forward network on flattened lookback windows.
+\item \textbf{LSTM}: a single-layer LSTM with hidden size 64 followed by a small dense head (Hochreiter and Schmidhuber).
+\item \textbf{CNN on GAF}: a small 2-layer CNN trained on GAF images constructed from return windows (Wang and Oates) and a convolutional architecture (LeCun et al.).
+\end{itemize}
+All models use lookback length 32, AdamW optimization (lr=0.001, weight decay=0.0001), and early stopping on a chronological validation split inside the training window.
+Prediction performance on the held-out test period is summarized in Table~\ref{tab:metrics}.

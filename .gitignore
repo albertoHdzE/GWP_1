@@ -6,6 +6,16 @@ __pycache__/
 # C extensions
 *.so
 
+
+RiskManagement/data
+RiskManagement/GWP1/data
+Portfolio-Management/data
+
+*.csv
+*.fls
+*.out
+*.txt
+*.fdb_latexmk
 # Distribution / packaging
 .Python
 build/

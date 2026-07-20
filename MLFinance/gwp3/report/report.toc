@@ -1,0 +1,24 @@
+\contentsline {section}{\numberline {1}Executive Summary}{2}{section.2}%
+\contentsline {section}{\numberline {2}Step 1}{2}{section.5}%
+\contentsline {subsection}{\numberline {2.1}Step 1a. Data description}{2}{subsection.6}%
+\contentsline {subsection}{\numberline {2.2}Step 1b. Label construction and leakage (intentional)}{4}{subsection.13}%
+\contentsline {subsection}{\numberline {2.3}Step 1c. Single-split prediction results}{4}{subsection.14}%
+\contentsline {subsubsection}{\numberline {2.3.1}Step 1c(1). MLP}{5}{subsubsection.15}%
+\contentsline {subsubsection}{\numberline {2.3.2}Step 1c(2). LSTM}{5}{subsubsection.16}%
+\contentsline {subsubsection}{\numberline {2.3.3}Step 1c(3). CNN on GAF}{5}{subsubsection.17}%
+\contentsline {subsection}{\numberline {2.4}Step 1d. Backtests from single-split models}{5}{subsection.18}%
+\contentsline {subsubsection}{\numberline {2.4.1}Step 1d(1). Strategy from MLP}{5}{subsubsection.19}%
+\contentsline {subsubsection}{\numberline {2.4.2}Step 1d(2). Strategy from LSTM}{6}{subsubsection.22}%
+\contentsline {subsubsection}{\numberline {2.4.3}Step 1d(3). Strategy from CNN on GAF}{6}{subsubsection.25}%
+\contentsline {section}{\numberline {3}Step 2 (Walk-forward backtests with leakage present)}{7}{section.28}%
+\contentsline {subsection}{\numberline {3.1}Step 2a. Non-anchored walk-forward with 500/500 splits}{7}{subsection.29}%
+\contentsline {subsection}{\numberline {3.2}Step 2b. Non-anchored walk-forward with 500/100 splits}{8}{subsection.36}%
+\contentsline {subsection}{\numberline {3.3}Step 2c. Comparison to Step 1}{9}{subsection.43}%
+\contentsline {subsection}{\numberline {3.4}Step 2d. Comparison between Step 2a and Step 2b}{9}{subsection.44}%
+\contentsline {section}{\numberline {4}Step 3 (Walk-forward backtests with leakage reduced)}{10}{section.45}%
+\contentsline {subsection}{\numberline {4.1}Step 3a. Leakage-reduction method}{10}{subsection.46}%
+\contentsline {subsection}{\numberline {4.2}Step 3b. Walk-forward with 500/500 splits (leakage reduced)}{10}{subsection.47}%
+\contentsline {subsection}{\numberline {4.3}Step 3c. Walk-forward with 500/100 splits (leakage reduced)}{12}{subsection.54}%
+\contentsline {subsection}{\numberline {4.4}Step 3d. Comparison of Step 3b and Step 3c; has overfitting disappeared?}{13}{subsection.61}%
+\contentsline {section}{\numberline {5}Conclusion and Practical Takeaways}{13}{section.62}%
+\contentsline {section}{\numberline {6}Works Cited (MLA)}{14}{section.63}%

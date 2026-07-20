@@ -1,0 +1,959 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{multirow}
+\usepackage{tabularx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{bm}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{hyperref}
+\usepackage[numbers]{natbib}
+\usepackage{setspace}
+\usepackage{hanging}
+\graphicspath{{/Users/alberto/Documents/projects/GWP_1/Porfolio-Management/GWP2/}}
+
+\title{MScFE 652 Portfolio Management \\ Group Work Project \#2 }
+\author{Seun Oluwafunmilayo Oludayo\\ Megha Shukla\\ Alberto Hernandez-Espinosa}
+\date{June 2026}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This project is the result of development of project MScFE 652 Portfolio Management.
+\end{abstract}
+
+\section*{AI Usage Disclosure}
+Artificial intelligence tools were used for:
+\begin{itemize}
+    \item Verifying the accuracy of data sourcing and references;
+    \item Validating the mathematical implementation of used algorithms
+    \item Assisting in code optimization and debugging to ensure reproducibility of results.
+\end{itemize}
+All interpretations, conclusions, and original content presented in this report were developed independently by the authors, and all AI-assisted work has been reviewed and verified for accuracy.
+
+
+\begin{table}[H]
+\centering
+\caption{Project snapshot}
+\label{tab:project_snapshot}
+{\small\setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.15}\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{4.2cm} X}
+\toprule
+Item & Value \\
+\midrule
+Asset universe & 12 assets across equities, gold, treasuries, and REITs (Table~\ref{tab:assets}). \\
+Training window & Jan 1, 2024 -- Sep 30, 2025 (438 trading days). \\
+Test window & Oct 1, 2025 -- Dec 31, 2025 (63 trading days). \\
+Main constraint & Fully invested; no shorts; $0 \le w_i \le 0.20$. \\
+Sizing choices & Kelly (100\%), Double-Kelly (200\%), Half-Kelly (50\%), plus Denoised-Kelly, Detoned-Kelly, Denoised+Detoned-Kelly, and HRP in the final ML comparison. \\
+Main test result & Double-Kelly returns the most, but HRP has the strongest Sharpe ratio and the smallest drawdown in the final seven-strategy comparison (Table~\ref{tab:step6_results}). \\
+Next improvement idea & Cross-validate the Kelly family and compare denoising, clustering, and detoning in one integrated workflow (Steps~3--6). \\
+\bottomrule
+\end{tabularx}}
+\end{table}
+
+\section{Introduction}
+
+This project is about building a simple growth-focused portfolio and then checking how it holds up out-of-sample. Table~\ref{tab:intro_summary} gives the main ideas without a long setup.
+
+\begin{table}[H]
+\centering
+\caption{Introduction summary (plain language)}
+\label{tab:intro_summary}
+{\small\setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.15}\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.8cm} X >{\raggedright\arraybackslash}p{3.2cm}}
+\toprule
+Topic & What it means here & Reference \\
+\midrule
+Portfolio choice & Pick weights to balance return and risk in a disciplined way. & Markowitz (1952) \\
+Kelly idea & Focus on long-run growth by working with log returns. & Kelly (1956) \\
+Practical constraints & Keep weights realistic: fully invested, no shorts, 20\% cap per asset. & Step~1 \\
+Why denoising & Covariance estimates can be noisy, and that noise can push weights around. & Laloux et al.\ (1999); L\'{o}pez de Prado (2020) \\
+What we report & Build weights in-sample, then compare Kelly/Double/Half out-of-sample. & Steps~1--2 \\
+\bottomrule
+\end{tabularx}}
+\end{table}
+
+\section{Asset Universe and Data}
+
+\subsection{Portfolio Construction}
+
+
+\begin{table}[H]
+\centering
+\caption{Portfolio Asset Universe}
+\label{tab:assets}
+\begin{tabular}{lll}
+\toprule
+Asset & Name & Sector / Asset Class \\
+\midrule
+AAPL  & Apple Inc.                    & Technology \\
+MSFT  & Microsoft Corp.               & Technology \\
+AMZN  & Amazon.com Inc.               & Consumer Discretionary \\
+JPM   & JPMorgan Chase \& Co.         & Financials \\
+JNJ   & Johnson \& Johnson            & Healthcare \\
+XOM   & Exxon Mobil Corp.             & Energy \\
+PG    & Procter \& Gamble Co.         & Consumer Staples \\
+NEE   & NextEra Energy Inc.           & Utilities \\
+BRK-B & Berkshire Hathaway B          & Diversified Conglomerate \\
+GLD   & SPDR Gold Shares ETF          & Commodities \\
+TLT   & iShares 20+ Year Treasury ETF & Fixed Income \\
+VNQ   & Vanguard Real Estate ETF      & Real Estate \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Data source and return construction}
+\label{tab:data_handling}
+{\small\setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.15}\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{4.0cm} X}
+\toprule
+Data item & How it was handled \\
+\midrule
+Prices & Daily adjusted close, downloaded from Yahoo Finance. \\
+Returns & Log-returns $r_{i,t} = \ln(P_{i,t}/P_{i,t-1})$ computed for each asset and day. \\
+\bottomrule
+\end{tabularx}}
+\end{table}
+
+\subsection{Data Periods}
+
+\begin{table}[H]
+\centering
+\caption{Sample windows and setup}
+\label{tab:sample_windows}
+{\small\setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.15}\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{4.2cm} >{\raggedright\arraybackslash}p{6.3cm} >{\raggedright\arraybackslash}p{3.0cm}}
+\toprule
+Piece & Dates & Size \\
+\midrule
+In-sample (training) & Jan 1, 2024 -- Sep 30, 2025 & 438 trading days \\
+Out-of-sample (testing) & Oct 1, 2025 -- Dec 31, 2025 & 63 trading days \\
+Risk-free rate & 4.5\% p.a. (annualised) & Used for excess return \\
+\bottomrule
+\end{tabularx}}
+\end{table}
+
+\subsection{Asset Correlations}
+
+Figure~\ref{fig:corr} shows the correlation matrix over the training
+period that are summarised in Table~\ref{tab:key_correlations},
+and the broader cross-asset dynamics support a multi-asset allocation strategy:
+\begin{table}[H]
+\centering
+\caption{What correlation say (training period)}
+\label{tab:corr_takeaways}
+{\small\setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.15}\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{4.2cm} X}
+\toprule
+Pattern & What it suggests \\
+\midrule
+Tech moves together & Tech names show stronger correlation, so they can behave like one single risk bucket. \\
+GLD/TLT hedge role & GLD and TLT are uncorrelated (or slightly negative) with equities, so they can help diversification. \\
+Room for diversification & Correlations are not all high, so mixing assets can still reduce portfolio swings. \\
+\bottomrule
+\end{tabularx}}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Key Pairwise Correlations (Training Period: January 1, 2024 -- September 30, 2025)}
+\label{tab:key_correlations}
+\begin{tabular}{p{2.2cm}p{5.3cm}c}
+\toprule
+Pair               & Comment                                      & Correlation \\
+\midrule
+AAPL-MSFT             & Technology sector peers                              & 0.50 \\
+AMZN-MSFT             & Technology/consumer discretionary sector peers        & 0.67 \\
+GLD-VNQ             & Gold commodity vs. broad equity market               & $\approx 0$ / $<0$ \\
+TLT-VNQ             & Long-duration Treasuries vs. growth sectors       & $\approx 0$ / $<0$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{correlation_heatmap.png}
+\caption{Asset correlation matrix over the training period
+(January~1,~2024 -- September~30,~2025).
+Darker green indicates higher positive correlation.}
+\label{fig:corr}
+\end{figure}
+
+\section{Step 1: Optimal Kelly Portfolio}
+
+\subsection{Theoretical Framework}
+
+We used a standard Kelly-style mean--variance objective on daily log-returns (Kelly 919--920):
+
+\[
+\max_{\bm{w}} \;\; \bm{w}^\top \bm{\mu} - \tfrac{1}{2}\, \bm{w}^\top \bm{\Sigma}\, \bm{w}
+\]
+
+Table~\ref{tab:kelly_setup} summarises our setup and the constraints we used.
+
+\begin{table}[H]
+\centering
+\caption{Kelly optimisation setup (what each piece means)}
+\label{tab:kelly_setup}
+{\small\setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.15}\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.2cm} X}
+\toprule
+Piece & Meaning \\
+\midrule
+$\bm{w}$ & Portfolio weights across the $N$ assets. \\
+$\bm{\mu}$ & Daily excess mean log-returns (net of the risk-free rate), estimated in-sample. \\
+$\bm{\Sigma}$ & Daily covariance matrix of log-returns, estimated in-sample. \\
+Unconstrained solution & $\bm{w}^* = \bm{\Sigma}^{-1}\bm{\mu}$ (Thorp 389). \\
+Constraints used here & Fully invested; no shorting; per-asset cap of 20\% (shown below). \\
+Numerical solve & Quadratic program solved with \texttt{cvxpy} (CLARABEL). \\
+\bottomrule
+\end{tabularx}}
+\end{table}
+
+The unconstrained analytical solution is (Thorp 389):
+
+\[
+\bm{w}^* = \bm{\Sigma}^{-1} \bm{\mu}
+\]
+
+We add practical constraints to keep the weights realistic:
+
+\begin{align*}
+    \sum_{i=1}^{N} w_i &= 1 \quad \text{(fully invested)} \\
+    0 \leq w_i &\leq 0.20 \quad \forall\, i \quad \text{(no short-selling; 20\% cap per asset)}
+\end{align*}
+
+We used
+\texttt{cvxpy} convex optimisation library with the CLARABEL solver to solve numerically this quadratic problem.
+
+\subsection{Optimal Weights}
+
+The constrained Kelly optimisation produces the weights shown in
+Table~\ref{tab:kelly_weights} and Figure~\ref{fig:weights}.
+
+\begin{table}[H]
+\centering
+\caption{Constrained Kelly Portfolio Weights ($\leq 20\%$ per asset)}
+\label{tab:kelly_weights}
+\begin{tabular}{lrr}
+\toprule
+Asset & Kelly Weight (\%) & Double-Kelly Weight (\%) \\
+\midrule
+AMZN  & 20.00 & 40.00 \\
+BRK-B & 20.00 & 40.00 \\
+GLD   & 20.00 & 40.00 \\
+JPM   & 20.00 & 40.00 \\
+MSFT  & 20.00 & 40.00 \\
+AAPL  &  0.00 &  0.00 \\
+JNJ   &  0.00 &  0.00 \\
+NEE   &  0.00 &  0.00 \\
+PG    &  0.00 &  0.00 \\
+TLT   &  0.00 &  0.00 \\
+VNQ   &  0.00 &  0.00 \\
+XOM   &  0.00 &  0.00 \\
+\midrule
+Total & 100.00 & 200.00 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.90\textwidth]{kelly_weights.png}
+\caption{Left: Constrained Kelly weights with the 20\% cap (dashed red line).
+Right: Side-by-side comparison of Kelly and Double-Kelly allocations.}
+\label{fig:weights}
+\end{figure}
+
+\subsection{Interpretation of Weights}
+
+The solution ends up being very ``all or nothing'': a few names at the 20\% cap and the rest at zero. Table~\ref{tab:bang_bang} explains why that happens, and Table~\ref{tab:weight_interpretation} gives the simple rationale by asset group.
+
+\begin{table}[H]
+\centering
+\caption{Why the weights look ``bang-bang'' in this case}
+\label{tab:bang_bang}
+{\small\setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.15}\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{4.4cm} X}
+\toprule
+What we see & Simple reason \\
+\midrule
+Five assets at 20\% & The unconstrained Kelly solution wants to concentrate on the strongest contributors, so once the cap binds it fills up the top picks first. \\
+Many assets at 0\% & Some assets do not improve the risk/return trade-off enough after correlations are considered, so the optimiser leaves them out under the cap. \\
+Clustering at the bounds & With a hard cap and no shorting, the optimiser often ends up pushing weights to the extremes (0\% or 20\%) instead of spreading them evenly. \\
+\bottomrule
+\end{tabularx}}
+\end{table}
+\begin{table}[H]
+\centering
+\caption{Rationale for Portfolio Weight Allocations}
+\label{tab:weight_interpretation}
+{\setlength{\tabcolsep}{4pt}\begin{tabularx}{\textwidth}{l l X}
+\toprule
+Group & Tickers & Explanation\\
+\midrule
+\multirow{5}{*}{Included (20\% weight)} 
+& AMZN, MSFT & Did well over the period, especially compared with the amount of day-to-day swings \\
+& JPM & Benefited from the higher interest-rate backdrop and held up better than most \\
+& BRK-B & Generally steadier than the rest and still delivered solid returns \\
+& GLD & Helped balance the equity risk since it did not move in step with the stocks \\
+\midrule
+\multirow{2}{*}{Excluded (0\% weight)}
+& JNJ, NEE, PG, XOM, VNQ & Nothing wrong with them, but they did not add enough return or diversification in this setup \\
+& TLT & Did not add much extra protection on top of GLD, and long bonds were hurt as rates moved up in 2024--2025 \\
+\bottomrule
+\end{tabularx}}
+\end{table}
+
+\section{Step 2: Out-of-Sample (test dataset) Performance Comparison}
+
+\subsection{Strategy and Performance Metrics Overview}
+
+Tables~\ref{tab:strategy_defs} and~\ref{tab:metric_defs} define the three sizing choices and the metrics used for comparison.
+
+\begin{table}[H]
+\centering
+\caption{Out-of-Sample Strategy Definitions}
+\label{tab:strategy_defs}
+\begin{tabularx}{\textwidth}{l l X}
+\toprule
+Strategy & Gross Notional Exposure & Description \\
+\midrule
+Kelly        & 100\% & Just the basic constrained allocation using the raw weights from Table~\ref{tab:kelly_weights}, all money put in with no borrowing to add extra positions. \\
+Double-Kelly & 200\% & Levered version where every Kelly weight is doubled, so the portfolio is 2:1 on gross exposure. \\
+Half-Kelly   & 50\%  & More cautious version where every Kelly weight is cut in half and the rest is held in the risk-free asset. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+
+\begin{table}[H]
+\centering
+\caption{Performance Metric Definitions}
+\label{tab:metric_defs}
+{\small\setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.15}\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.3cm} >{\raggedright\arraybackslash}p{5.2cm} X}
+\toprule
+Metric & Formula & Interpretation \\
+\midrule
+Cumulative Return & \(\displaystyle R_{cum} = e^{\sum_t r_t} - 1\) & How much the whole portfolio grew (or shrank) in percentage terms over the whole test window, figured by adding up all the daily log returns we tracked. \\
+Sharpe Ratio & \(\displaystyle S = \frac{\bar{r}_{excess}}{\sigma_r}\sqrt{252}\) & Annual number that shows if returns were worth the risk taken, compares average extra returns above the 4.5\% risk-free rate to how much daily returns bounced around, then scaled to a full year. \\
+Maximum Drawdown (MDD) & \(\displaystyle \text{MDD} = \min_t \frac{V_t - M_t}{M_t}, \;\; M_t=\max_{s \leq t} V_s\) & Biggest single drop from a high point to a low point the portfolio saw during the test, basically the worst loss anyone holding this would've had to sit through at any point. \\
+95\%-CVaR (daily) & Empirical mean of the worst 5\% of daily returns & Average loss on the really bad trading days, the 5\% worst ones, gives a sense of how bad those terrible days usually were, not just the single worst one. \\
+\bottomrule
+\end{tabularx}}
+\end{table}
+\subsection{Results}
+
+\begin{table}[H]
+\centering
+\caption{Out-of-sample performance -- October 1 -- December 31, 2025}
+\label{tab:oos_results}
+\begin{tabular}{lcccc}
+\toprule
+Strategy & Cumulative Return (\%) & Sharpe Ratio & Max Drawdown (\%) & 95\%-CVaR daily (\%) \\
+\midrule
+Kelly        &  2.39 & 0.40 &  $-5.54$ & $-1.44$ \\
+Double-Kelly &  4.83 & 0.59 & $-10.77$ & $-2.88$ \\
+Half-Kelly   &  1.19 & 0.02 &  $-2.81$ & $-0.72$ \\
+\bottomrule
+\multicolumn{5}{l}{\small Note: CVaR and MDD are negative values (losses). Risk-free rate: 4.5\% p.a.}
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{cumulative_returns_oos.png}
+\caption{Cumulative returns of the three strategies -- out-of-sample period (October~1 -- December~31, 2025).}
+\label{fig:cumret}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{drawdown_oos.png}
+\caption{Portfolio drawdown paths -- out-of-sample period. The shaded area highlights the Double-Kelly drawdown, which peaked at $-10.77\%$ around mid-November 2025.}
+\label{fig:drawdown}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{metrics_comparison.png}
+\caption{Summary of the four risk and performance metrics for each strategy.}
+\label{fig:metrics}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{return_distributions.png}
+\caption{Empirical daily return distributions and 5th percentile (VaR) thresholds for each strategy -- out-of-sample period.}
+\label{fig:dist}
+\end{figure}
+
+\subsection{Analysis and Discussion}
+
+The results in Table~\ref{tab:oos_results} are easier to read when we translate the
+numbers into a few simple takeaways. Table~\ref{tab:oos_takeaways} summarises the
+main points, and Table~\ref{tab:oos_reco} gives a practical interpretation.
+
+\begin{table}[H]
+\centering
+\caption{Out-of-sample results: quick interpretation}
+\label{tab:oos_takeaways}
+{\small\setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.15}\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.0cm} >{\raggedright\arraybackslash}p{2.6cm} >{\raggedright\arraybackslash}p{2.8cm} >{\raggedright\arraybackslash}p{2.6cm} X}
+\toprule
+Metric & Kelly & Double-Kelly & Half-Kelly & Explanation \\
+\midrule
+Cumulative return & 2.39\% & 4.83\% & 1.19\% & Double-Kelly is roughly ``twice the exposure, roughly twice the result'' over this short window (Thorp 395--396). \\
+Sharpe ratio & 0.40 & 0.59 & 0.02 & In practice, the risk-free adjustment matters: when returns are small, subtracting the risk-free rate can noticeably change the ratio, especially over a short test period. \\
+Max drawdown & $-5.54\%$ & $-10.77\%$ & $-2.81\%$ & Losses scale up with leverage too. The worst dip for Double-Kelly is about twice Kelly, and it happened around mid-November 2025 during a broad equity sell-off. \\
+95\%-CVaR (daily) & $-1.44\%$ & $-2.88\%$ & $-0.72\%$ & On the worst 5\% of days, Double-Kelly loses about twice as much as Kelly, which is the key cost of leverage. \\
+\bottomrule
+\end{tabularx}}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Practical takeaways from the three leverage choices}
+\label{tab:oos_reco}
+{\small\setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.15}\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.6cm} >{\raggedright\arraybackslash}p{3.0cm} X}
+\toprule
+Investor style & Suggested strategy & Brief reason \\
+\midrule
+Balanced risk appetite & Kelly & Keeps decent upside (2.39\%) while drawdowns stay more manageable than the leveraged version. \\
+High risk tolerance and leverage capacity & Double-Kelly & Higher return, but you must be comfortable with larger drawdowns and worse tail losses. \\
+More cautious sizing / uncertainty is high & Half-Kelly & Smaller drawdowns, but risk-adjusted performance can look weak over short windows once the risk-free rate is accounted for (L\'{o}pez de Prado 42--44). \\
+\bottomrule
+\end{tabularx}}
+\end{table}
+
+\section{Step 3: K-fold Cross-Validation Backtesting}
+
+\subsection{Walk-forward K-fold design}
+
+Instead of judging the portfolio rules on one
+out-of-sample window only, we rotate the test window across the full 2024--2025 sample and
+re-estimate the model each time. The standard random K-fold procedure is not appropriate for
+financial data because shuffling would let future observations leak into the training set. We used a walk-forward variant in which the training window
+always ends before the test window begins, and we add a 5-day embargo at the boundary to
+reduce contamination from short-run autocorrelation.
+
+\begin{table}[H]
+\centering
+\caption{Step 3 backtesting design}
+\label{tab:step3_design}
+{\small\setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.15}\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{4.2cm} X}
+\toprule
+Item & Implementation in the script \\
+\midrule
+Dataset used & Full sample from Jan 3, 2024 to Dec 31, 2025 (501 daily log-return observations after differencing). \\
+Number of folds & 5 walk-forward folds. \\
+Initial training size & 86 observations. \\
+Test size per fold & 83 observations. \\
+Embargo & 5 trading days between training end and test start. \\
+Strategies compared & Kelly, Double-Kelly, and Half-Kelly. \\
+Metrics reported & Cumulative return, Sharpe ratio, Sortino ratio, Maximum Drawdown, and 95\%-CVaR. \\
+\bottomrule
+\end{tabularx}}
+\end{table}
+
+\subsection{Cross-validation results}
+
+Double-Kelly has the
+highest mean return and the highest mean Sharpe ratio across folds, but it is also the least stable.
+Its standard deviation across folds is almost as large as its mean Sharpe ratio, and its average
+drawdown and tail loss are materially worse than the alternatives. Kelly sits in the middle, while
+Half-Kelly gives the most conservative profile, with smaller losses but also weaker risk-adjusted
+payoff.
+
+\begin{table}[H]
+\centering
+\caption{Step 3 cross-validation summary: mean (standard deviation) across 5 folds}
+\label{tab:step3_summary}
+{\small\setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.15}\begin{tabular}{lccccc}
+\toprule
+Strategy & Cum. Return (\%) & Sharpe & Sortino & Max Drawdown (\%) & 95\%-CVaR (\%) \\
+\midrule
+Kelly & 4.42 (3.19) & 0.83 (0.95) & 0.78 (0.91) & $-7.44$ (4.73) & $-1.92$ (1.01) \\
+Double-Kelly & 9.12 (6.68) & 1.01 (0.99) & 0.95 (0.95) & $-14.15$ (8.50) & $-3.84$ (2.02) \\
+Half-Kelly & 2.18 (1.56) & 0.46 (0.87) & 0.43 (0.81) & $-3.82$ (2.49) & $-0.96$ (0.50) \\
+\bottomrule
+\multicolumn{6}{l}{\small Note: values are mean (standard deviation) across the 5 walk-forward folds.}
+\end{tabular}}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\textwidth]{step3_cv_summary.png}
+\caption{Step 3 cross-validation summary. Left: mean Sharpe ratio across folds. Right: mean maximum drawdown across folds.}
+\label{fig:step3_cv}
+\end{figure}
+
+\subsection{Interpretation}
+
+This pattern is close to the logic in previous steps. Leverage can help when the
+estimated edge is right, so Double-Kelly often posts the highest fold return, but the same leverage
+also magnifies estimation error and tail losses. In practical terms, the walk-forward backtest says
+that Double-Kelly is the most aggressive choice, Kelly is the middle-ground choice, and
+Half-Kelly is the most robust if parameter uncertainty is the main concern.
+
+\section{Step 4: Improvements Using Denoising, Clustering, and Detoning}
+
+\subsection{The Estimation Error Problem in Covariance Matrices}
+
+Here we estimated the covariance matrix $\bm{\Sigma}$, and found that it is noisy. Estimates are noisy, and that noise can move weights around. Table~\ref{tab:estimation_noise} puts the idea in the context of our data.  
+
+\begin{table}[H]
+\centering
+\caption{Estimation noise: what it means for this project}
+\label{tab:estimation_noise}
+{\small\setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.15}\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{4.2cm} X}
+\toprule
+Piece & Plain meaning \\
+\midrule
+What is being estimated & Expected returns $\bm{\mu}$ and covariance $\bm{\Sigma}$ from historical data. \\
+Why it is a problem & Random variation can look like a pattern, and the optimiser may chase it. \\
+Why covariances matter a lot & The Kelly-style solution depends heavily on $\bm{\Sigma}^{-1}$, which can amplify estimation noise. \\
+Why this study still makes sense & With $N=12$ and $T=438$, estimates are workable but still noisy enough that cleaning $\bm{\Sigma}$ can help (Laloux et al.\ 1467). \\
+\bottomrule
+\end{tabularx}}
+\end{table}
+
+\subsection{Random Matrix Theory and the Marc\u{e}nko-Pastur Distribution}
+
+RMT gives a rule of thumb for which eigenvalues look like noise, based on $q=N/T$ (L\'{o}pez de Prado 58; Laloux et al.\ 1467--1468).
+
+\[
+\lambda^{\pm} = \sigma^2 \left(1 \pm \frac{1}{\sqrt{q}}\right)^2
+\]
+
+\begin{table}[H]
+\centering
+\caption{RMT quantities used in this study}
+\label{tab:rmt_params}
+{\small\setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.15}\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{4.0cm} X}
+\toprule
+Quantity & How we use it \\
+\midrule
+$q = N/T$ & Ratio that controls the noise band for eigenvalues. Here $q = 12/438 \approx 0.0274$. \\
+$\lambda^+$ & Upper bound of the ``mostly noise'' region. Here $\lambda^+ \approx 1.37$. \\
+Interpretation & Eigenvalues at/below $\lambda^+$ are treated as noise-like; bigger eigenvalues are treated as structure worth keeping. \\
+\bottomrule
+\end{tabularx}}
+\end{table}
+
+\subsection{The Denoising Procedure}
+
+Table~\ref{tab:denoise_steps} summarises the standard Marc\u{e}nko-Pastur denoising
+recipe (L\'{o}pez de Prado 60--63).
+
+\begin{table}[H]
+\centering
+\caption{Denoising procedure (Marc\u{e}nko-Pastur): plain summary}
+\label{tab:denoise_steps}
+{\small\setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.15}\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{2.0cm} X}
+\toprule
+Step & What you do \\
+\midrule
+1 & Build the sample correlation matrix $\hat{\bm{C}}$ from log-returns. \\
+2 & Compute eigenvalues and eigenvectors: $\hat{\bm{C}} = \bm{V}\bm{\Lambda}\bm{V}^\top$. \\
+3 & Use $\lambda^+$ to decide which eigenvalues look like noise (those at or below $\lambda^+$). \\
+4 & Replace the ``noise'' eigenvalues with a single average level (chosen so the total variance is preserved), then rebuild a denoised $\tilde{\bm{C}}$. \\
+5 & Convert back to a covariance matrix using the original asset standard deviations. \\
+\bottomrule
+\end{tabularx}}
+\end{table}
+
+\subsection{Benefits for Kelly Optimisation}
+
+Applying denoising before solving the constrained Kelly problem is mainly about making
+the inputs less fragile. Table~\ref{tab:denoise_benefits} summarises the practical
+benefits.
+
+\begin{table}[H]
+\centering
+\caption{Why denoising can help the Kelly optimisation}
+\label{tab:denoise_benefits}
+{\small\setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.15}\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.4cm} X}
+\toprule
+Benefit & Plain interpretation \\
+\midrule
+Less overfitting in $\bm{\Sigma}^{-1}$ & The optimiser can overreact to small, noisy eigenvalues because inversion amplifies them. Denoising reduces this effect and usually leads to more stable weights (L\'{o}pez de Prado 64--65). \\
+Better numerical stability & A better-conditioned covariance matrix makes optimisation and inversion less sensitive to small data changes. \\
+Less ``whipsaw'' turnover & Weights tend to move less from one rebalance to the next, which matters once you consider transaction costs. \\
+Empirical support & Denoised covariances often improve out-of-sample Sharpe ratios in practice, especially when $T/N$ is not very large (L\'{o}pez de Prado 66). \\
+\bottomrule
+\end{tabularx}}
+\end{table}
+
+\subsection{Application to Our Portfolio}
+
+If we denoise the covariance estimates for this 12-asset universe, the main expectation is
+that the allocation would be less ``all-in'' on the same five names at the 20\% cap.
+In simple terms, denoising can make the optimiser less confident in very concentrated bets.
+Table~\ref{tab:denoise_impact} states the likely direction of change.
+
+\begin{table}[H]
+\centering
+\caption{Expected effect of denoising in this study (directional)}
+\label{tab:denoise_impact}
+{\small\setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.15}\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{4.0cm} X}
+\toprule
+What would change & What we expect to see \\
+\midrule
+Weight concentration & A less extreme ``five-at-the-cap'' pattern, with some weight spreading across more assets. \\
+Previously excluded assets (e.g., TLT, VNQ) & They may look more helpful once noisy covariance effects are reduced, so they could receive small positive weights in the constrained solution. \\
+Tail risk measures (MDD, CVaR) & Likely lower, since the portfolio may be less concentrated in correlated equity exposures. \\
+Raw cumulative return & Possibly a bit lower, since reducing concentration can give up some upside when the concentrated names keep performing. \\
+\bottomrule
+\end{tabularx}}
+\end{table}
+
+Steps~5 and~6 apply this and compare the denoised version out-of-sample.
+
+\subsection{Improvements Using Clustering: Hierarchical Risk Parity}
+
+Here was used clustering from a practical problem in mean--variance style optimisation:
+if inputs are noisy, the optimiser can mistake noise for signal and over-allocate to whatever looks
+best in-sample. HRP avoids that fragility by side-stepping expected return estimation and by
+allocating risk across clusters rather than pushing directly through a covariance-matrix inverse.
+
+\[
+d(i,j)=\sqrt{\frac{1-\rho_{ij}}{2}}
+\]
+
+This distance turns correlations into a clustering input. Assets that move similarly end up closer
+together, and hierarchical clustering can then group them before the recursive allocation step.
+The final weights are set by recursive bisection so that no single cluster dominates total risk.
+
+\begin{table}[H]
+\centering
+\caption{HRP in plain language}
+\label{tab:hrp_summary}
+{\small\setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.15}\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.0cm} X}
+\toprule
+Stage & What happens \\
+\midrule
+Distance step & Convert the correlation matrix into pairwise distances using \(d(i,j)=\sqrt{(1-\rho_{ij})/2}\). \\
+Clustering step & Build a hierarchical tree so that similar assets sit in the same branch. \\
+Quasi-diagonalisation & Reorder the covariance matrix so related assets sit next to each other. \\
+Recursive bisection & Split the asset tree into sub-clusters and allocate weight inversely to cluster variance. \\
+Practical effect & The portfolio spreads risk across groups instead of chasing the highest estimated mean return. \\
+\bottomrule
+\end{tabularx}}
+\end{table}
+
+The resulting HRP weights are much more diversified than the constrained Kelly solution. The
+largest allocations are TLT (20.82\%), GLD (15.66\%), PG (10.22\%), VNQ (9.40\%), JNJ
+(9.39\%), and XOM (8.71\%). That is exactly the kind of pattern clustering is designed to
+produce: less concentration in a few equity names and more balance across different risk buckets.
+
+\subsection{Improvements Using Detoning}
+
+Even after denoising, the first
+eigenvector in the correlation matrix can still represent a broad market mode that pushes many
+assets in the same direction. If the goal is diversification, that common factor can make the
+optimiser look more confident than it should be about concentrated bets. Detoning removes that
+dominant mode and then re-normalises the matrix.
+
+\[
+\bm{C}_{\text{detoned}} = \bm{C} - \lambda_{\text{mkt}} \bm{v}_{\text{mkt}} \bm{v}_{\text{mkt}}^\top
+\]
+
+\begin{table}[H]
+\centering
+\caption{What detoning changes}
+\label{tab:detone_summary}
+{\small\setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.15}\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.6cm} X}
+\toprule
+Question & Practical answer \\
+\midrule
+What is removed? & The first eigenvector, interpreted as the broad market factor. \\
+Why remove it? & It can dominate the covariance structure and hide genuine diversification opportunities. \\
+What happened in our run? & The largest eigenvalue was 3.5170, equal to 29.3\% of total trace before detoning. \\
+What happens after denoising first? & The stacked denoised$\rightarrow$detoned matrix still has a dominant market factor, with eigenvalue 3.5243 (29.4\% of trace), which is then removed. \\
+Expected portfolio effect & Slightly less concentration and a better chance that diversifying assets receive positive weight. \\
+\bottomrule
+\end{tabularx}}
+\end{table}
+
+\section{Step 5: Applying the ML Improvements}
+
+\subsection{What was implemented}
+We applied the following improvements to the
+same 12-asset universe used in Step~1:
+
+\begin{table}[H]
+\centering
+\caption{Step 5 methodology menu}
+\label{tab:step5_methods}
+{\small\setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.15}\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.2cm} >{\raggedright\arraybackslash}p{3.9cm} X}
+\toprule
+Tool & Core merit & Main drawback \\
+\midrule
+HRP & Stable, cluster-based diversification without matrix inversion. & Does not explicitly maximise growth through expected returns. \\
+Constrained Kelly & Targets long-run compounding growth while keeping a 20\% cap and no shorting. & Still sensitive to estimation error in the inputs. \\
+Double-Kelly & Pushes the growth logic further through leverage. & Can magnify drawdowns and tail losses very quickly. \\
+Denoising & Cleans the covariance estimate by shrinking noise-like eigenvalues. & By itself, it may not change the final portfolio if the original cap constraints already bind. \\
+Detoning & Removes the broad market mode and can open room for more diversification. & Can lower concentration but does not guarantee better raw return. \\
+\bottomrule
+\end{tabularx}}
+\end{table}
+
+\subsection{Explaining results}
+
+\begin{table}[H]
+\centering
+\caption{Step 5 log excerpt reference}
+\label{tab:step5_logs_ref}
+{\small\setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.15}\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{4.0cm} X}
+\toprule
+Logged item & Result from the script run \\
+\midrule
+Denoising noise band & \([0.6960,\ 1.3589]\) \\
+Noisy eigenvalues & 4 of 12 \\
+Market eigenvalue before detoning & 3.5170 (29.3\% of trace) \\
+Market eigenvalue after denoising, before stacked detoning & 3.5243 (29.4\% of trace) \\
+\bottomrule
+\end{tabularx}}
+\end{table}
+
+\begin{verbatim}
+=== Denoising ===
+  MP noise band       : [0.6960,  1.3589]
+  Noisy eigenvalues   : 4 / 12
+Denoised covariance matrix computed.
+
+=== Detoning ===
+  Market eigenvalue   : 3.5170  (29.3% of trace)
+
+=== Denoised -> Detoned (stacked) ===
+  Market eigenvalue   : 3.5243  (29.4% of trace)
+\end{verbatim}
+
+\subsection{Portfolio weights after the improvements}
+
+The denoising-only portfolio is practically identical to the baseline constrained Kelly solution:
+the same five assets remain pinned at the 20\% cap. This is a useful result in itself, because it
+shows that the binding cap is already strong enough that a modest covariance cleaning step does
+not move the optimum. Detoning changes the solution slightly by allowing a small positive weight
+to AAPL and reducing MSFT below the cap. The stacked denoised+detoned version pushes this
+effect a bit further. HRP is the most visibly different portfolio because it spreads risk across all
+12 assets.
+
+\begin{table}[H]
+\centering
+\caption{Step 5 portfolio weights (\%)}
+\label{tab:step5_weights}
+{\scriptsize\setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.12}\begin{tabular}{lrrrrr}
+\toprule
+Ticker & Kelly & Denoised & Detoned & Denoised+Detoned & HRP \\
+\midrule
+AAPL  & 0.00 & 0.00 & 0.76 & 1.60 & 4.68 \\
+AMZN  & 20.00 & 20.00 & 20.00 & 20.00 & 2.94 \\
+BRK-B & 20.00 & 20.00 & 20.00 & 20.00 & 6.04 \\
+GLD   & 20.00 & 20.00 & 20.00 & 20.00 & 15.66 \\
+JNJ   & 0.00 & 0.00 & 0.00 & 0.00 & 9.39 \\
+JPM   & 20.00 & 20.00 & 20.00 & 20.00 & 2.98 \\
+MSFT  & 20.00 & 20.00 & 19.25 & 18.40 & 5.47 \\
+NEE   & 0.00 & 0.00 & 0.00 & 0.00 & 3.68 \\
+PG    & 0.00 & 0.00 & 0.00 & 0.00 & 10.22 \\
+TLT   & 0.00 & 0.00 & 0.00 & 0.00 & 20.82 \\
+VNQ   & 0.00 & 0.00 & 0.00 & 0.00 & 9.40 \\
+XOM   & 0.00 & 0.00 & 0.00 & 0.00 & 8.71 \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{step5_weights_comparison.png}
+\caption{Step 5 weights comparison across the baseline Kelly portfolio and the ML-enhanced alternatives.}
+\label{fig:step5_weights}
+\end{figure}
+
+\subsection{Merits and sequence}
+
+We believe that these methods are better seen as complementary tools than
+as substitutes. That logic still holds after integration. A practical sequence is:
+
+\begin{table}[H]
+\centering
+\caption{Suggested sequence for the three improvements}
+\label{tab:step5_sequence}
+{\small\setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.15}\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{1.3cm} X}
+\toprule
+Step & Reason \\
+\midrule
+1 & Denoise first, because it removes the most obvious covariance noise before any further transformation. \\
+2 & Detone next, because removing the market factor is cleaner once the raw noise has already been reduced. \\
+3 & Re-optimise Kelly on the cleaned matrix and benchmark the result against HRP and the original Kelly portfolio. \\
+4 & Use HRP as the diversification benchmark, especially if stability and drawdown control matter more than pure growth maximisation. \\
+\bottomrule
+\end{tabularx}}
+\end{table}
+
+\section{Step 6: Do Multiple Improvements Outperform?}
+
+\subsection{Seven-strategy out-of-sample comparison}
+
+Here we compare the original three Kelly sizing rules with four ML-enhanced alternatives over the
+same out-of-sample window, October~1 to December~31, 2025. We
+compare cumulative return, annualised Sharpe ratio, Sortino ratio, Maximum Drawdown, and
+95\%-CVaR.
+
+\begin{table}[H]
+\centering
+\caption{Step 6 out-of-sample results: all seven strategies}
+\label{tab:step6_results}
+{\small\setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.12}\begin{tabular}{lccccc}
+\toprule
+Strategy & Cum. Return (\%) & Sharpe & Sortino & Max Drawdown (\%) & 95\%-CVaR (\%) \\
+\midrule
+Kelly & 2.3877 & 0.3995 & 0.3948 & $-5.5364$ & $-1.4394$ \\
+Double-Kelly & 4.8324 & 0.5872 & 0.5858 & $-10.7663$ & $-2.8787$ \\
+Half-Kelly & 1.1868 & 0.0243 & 0.0239 & $-2.8076$ & $-0.7197$ \\
+Denoised-Kelly & 2.3877 & 0.3995 & 0.3948 & $-5.5364$ & $-1.4394$ \\
+Detoned-Kelly & 2.4907 & 0.4331 & 0.4287 & $-5.5098$ & $-1.4341$ \\
+Denoised+Detoned-Kelly & 2.6064 & 0.4708 & 0.4668 & $-5.4797$ & $-1.4281$ \\
+HRP & 2.8174 & 0.9033 & 0.8875 & $-2.5599$ & $-0.7931$ \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{step6_cumulative_returns.png}
+\caption{Step 6 cumulative returns for all seven strategies over the out-of-sample period.}
+\label{fig:step6_cum}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{step6_metrics_bar.png}
+\caption{Step 6 comparison of cumulative return, annualised Sharpe ratio, and maximum drawdown across all seven strategies.}
+\label{fig:step6_metrics}
+\end{figure}
+
+\subsection{Interpretation of results}
+
+\begin{table}[H]
+\centering
+\caption{Step 6 interpretation}
+\label{tab:step6_takeaways}
+{\small\setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.15}\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.6cm} X}
+\toprule
+Finding & Interpretation \\
+\midrule
+Highest raw return & Double-Kelly remains the return leader at 4.83\%, but that gain comes with the worst drawdown and the worst tail loss. \\
+Best risk-adjusted result & HRP has the highest Sharpe ratio (0.9033), the highest Sortino ratio (0.8875), and the lowest maximum drawdown ($-2.5599\%$). \\
+Best Kelly-family improvement & Denoised+Detoned-Kelly is the strongest Kelly variant once ML adjustments are allowed, improving return and both risk-adjusted ratios relative to baseline Kelly. \\
+Denoising alone & Denoised-Kelly is numerically the same as baseline Kelly in this sample because the weight cap still binds the same five assets. \\
+Half-Kelly & Half-Kelly cuts risk materially, but the risk-free adjustment leaves its Sharpe ratio close to zero over this short test window. \\
+\bottomrule
+\end{tabularx}}
+\end{table}
+
+As initial conclusion we think think that multiple improvements can help, but the value
+depends on what the investor is trying to improve. If the target is the highest raw return,
+Double-Kelly still wins. If the target is a better overall balance between return, drawdown, and
+tail risk, HRP is the clearest winner. If the investor wants to stay within the Kelly framework,
+denoising and detoning work better together than separately.
+\section{Conclusion}
+
+\begin{table}[H]
+\centering
+\caption{Conclusion summary}
+\label{tab:conclusion_summary}
+{\small\setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.15}\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{4.0cm} X}
+\toprule
+Point & Summary \\
+\midrule
+In-sample baseline result & With a 20\% cap and no shorts, the original Kelly solution still concentrates in five assets at the cap. \\
+Step 3 message & Walk-forward K-fold testing confirms that leverage lifts average return but also makes results much less stable across folds. \\
+Step 4 message & Denoising, clustering, and detoning all try to reduce fragility, but they do so in different ways: cleaning noise, spreading risk across clusters, or removing the market mode. \\
+Best ML-enhanced Kelly result & Denoised+Detoned-Kelly is the strongest Kelly-family variant in the Q4~2025 out-of-sample test. \\
+Best overall trade-off & HRP gives the best overall risk-adjusted performance in the final seven-strategy comparison. \\
+\bottomrule
+\end{tabularx}}
+\end{table}
+
+The traditional Kelly framework is
+useful, but its aggressive versions are highly sensitive to estimation error. Cross-validation shows
+that leverage can pay when the signal is right, yet the losses scale quickly when it is wrong.
+Among the ML-style improvements, denoising and detoning together improve the Kelly family
+modestly, while HRP changes the portfolio structure more substantially and delivers the best
+balance between return and risk in the final out-of-sample comparison.
+
+\bibliographystyle{plainnat}
+\begin{thebibliography}{99}
+
+\bibitem{kelly1956}
+Kelly, J. L. ``A New Interpretation of Information Rate.''
+\textit{Bell System Technical Journal}, vol.~35, no.~4, 1956, pp.~917--926.
+
+\bibitem{laloux1999}
+Laloux, L., et al. ``Noise Dressing of Financial Correlation Matrices.''
+\textit{Physical Review Letters}, vol.~83, no.~7, 1999, pp.~1467--1470.
+
+\bibitem{lopezdeprado2016}
+L\'{o}pez de Prado, Marcos.
+``Building Diversified Portfolios that Outperform Out of Sample.''
+\textit{The Journal of Portfolio Management}, vol.~42, no.~4, 2016, pp.~59--69.
+
+\bibitem{lopezdeprado2018}
+L\'{o}pez de Prado, Marcos.
+\textit{Advances in Financial Machine Learning}.
+Wiley, 2018.
+
+\bibitem{lopezdeprado2020}
+L\'{o}pez de Prado, Marcos.
+\textit{Machine Learning for Asset Managers}.
+Cambridge University Press, 2020.
+
+\bibitem{maclean2011}
+MacLean, Leonard C., Edward O. Thorp, and William T. Ziemba.
+\textit{The Kelly Capital Growth Investment Criterion}.
+World Scientific, 2011.
+
+\bibitem{markowitz1952}
+Markowitz, Harry. ``Portfolio Selection.''
+\textit{The Journal of Finance}, vol.~7, no.~1, 1952, pp.~77--91.
+
+\bibitem{merton1980}
+Merton, Robert C.
+``On Estimating the Expected Return on the Market: An Exploratory Investigation.''
+\textit{Journal of Financial Economics}, vol.~8, no.~4, 1980, pp.~323--361.
+
+\bibitem{michaud1989}
+Michaud, Richard O.
+``The Markowitz Optimization Enigma: Is ``Optimized'' Optimal?''
+\textit{Financial Analysts Journal}, vol.~45, no.~1, 1989, pp.~31--42.
+
+\bibitem{demiguel2009}
+DeMiguel, Victor, Lorenzo Garlappi, and Raman Uppal.
+``Optimal versus Naive Diversification: How Inefficient is the 1/N Portfolio Strategy?''
+\textit{Review of Financial Studies}, vol.~22, no.~5, 2009, pp.~1915--1953.
+
+\bibitem{bailey2014}
+Bailey, David H., et al.
+``The Probability of Backtest Overfitting.''
+\textit{Journal of Computational Finance}, vol.~20, no.~4, 2017, pp.~39--69.
+
+\bibitem{thorp2006}
+Thorp, Edward O. ``The Kelly Criterion in Blackjack, Sports Betting, and the
+Stock Market.''
+\textit{Handbook of Asset and Liability Management}, vol.~1,
+edited by S. A. Zenios and W. Ziemba,
+North-Holland, 2006, pp.~385--428.
+
+\bibitem{ward1963}
+Ward, Joe H.
+``Hierarchical Grouping to Optimize an Objective Function.''
+\textit{Journal of the American Statistical Association}, vol.~58, no.~301, 1963, pp.~236--244.
+
+\end{thebibliography}
+
+\end{document}

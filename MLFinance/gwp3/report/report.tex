@@ -1,0 +1,215 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{float}
+\hypersetup{hypertexnames=false}
+\graphicspath{{images/}}
+
+\title{GWP \#3}
+\author{}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+%\tableofcontents
+
+\section{Executive Summary}
+
+\input{images/metrics_summary_table.tex}
+
+\section{Step 1}
+
+\subsection{Step 1a. Data description}
+
+\input{images/step1a.tex}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\linewidth]{data_price.png}
+\caption{Auto-adjusted close price for the selected security.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\linewidth]{data_returns.png}
+\caption{Log returns time series used for feature engineering and labeling.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.75\linewidth]{data_return_hist.png}
+\caption{Empirical distribution of log returns.}
+\end{figure}
+
+\subsection{Step 1b. Label construction and leakage (intentional)}
+
+\input{images/step1b.tex}
+
+\subsection{Step 1c. Single-split prediction results}
+
+\input{images/step1c.tex}
+
+\subsubsection{Step 1c(1). MLP}
+
+\subsubsection{Step 1c(2). LSTM}
+
+\subsubsection{Step 1c(3). CNN on GAF}
+
+\subsection{Step 1d. Backtests from single-split models}
+
+\input{images/step1d.tex}
+
+\subsubsection{Step 1d(1). Strategy from MLP}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\linewidth]{step1_equity_mlp.png}
+\caption{Step 1 backtest equity curve implied by the MLP.}
+\end{figure}
+
+\subsubsection{Step 1d(2). Strategy from LSTM}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\linewidth]{step1_equity_lstm.png}
+\caption{Step 1 backtest equity curve implied by the LSTM.}
+\end{figure}
+
+\subsubsection{Step 1d(3). Strategy from CNN on GAF}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\linewidth]{step1_equity_cnn_gaf.png}
+\caption{Step 1 backtest equity curve implied by the CNN on GAF features.}
+\end{figure}
+
+\section{Step 2 (Walk-forward backtests with leakage present)}
+
+\subsection{Step 2a. Non-anchored walk-forward with 500/500 splits}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\linewidth]{step2a_equity_mlp.png}
+\caption{Step 2a aggregated walk-forward equity curve (MLP).}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\linewidth]{step2a_equity_lstm.png}
+\caption{Step 2a aggregated walk-forward equity curve (LSTM).}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\linewidth]{step2a_equity_cnn_gaf.png}
+\caption{Step 2a aggregated walk-forward equity curve (CNN on GAF).}
+\end{figure}
+
+\subsection{Step 2b. Non-anchored walk-forward with 500/100 splits}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\linewidth]{step2b_equity_mlp.png}
+\caption{Step 2b aggregated walk-forward equity curve (MLP).}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\linewidth]{step2b_equity_lstm.png}
+\caption{Step 2b aggregated walk-forward equity curve (LSTM).}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\linewidth]{step2b_equity_cnn_gaf.png}
+\caption{Step 2b aggregated walk-forward equity curve (CNN on GAF).}
+\end{figure}
+
+\subsection{Step 2c. Comparison to Step 1}
+
+\input{images/step2c.tex}
+
+\subsection{Step 2d. Comparison between Step 2a and Step 2b}
+
+\input{images/step2d.tex}
+
+\section{Step 3 (Walk-forward backtests with leakage reduced)}
+
+\subsection{Step 3a. Leakage-reduction method}
+
+\input{images/step3a.tex}
+
+\subsection{Step 3b. Walk-forward with 500/500 splits (leakage reduced)}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\linewidth]{step3b_equity_mlp.png}
+\caption{Step 3b aggregated walk-forward equity curve (MLP).}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\linewidth]{step3b_equity_lstm.png}
+\caption{Step 3b aggregated walk-forward equity curve (LSTM).}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\linewidth]{step3b_equity_cnn_gaf.png}
+\caption{Step 3b aggregated walk-forward equity curve (CNN on GAF).}
+\end{figure}
+
+\subsection{Step 3c. Walk-forward with 500/100 splits (leakage reduced)}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\linewidth]{step3c_equity_mlp.png}
+\caption{Step 3c aggregated walk-forward equity curve (MLP).}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\linewidth]{step3c_equity_lstm.png}
+\caption{Step 3c aggregated walk-forward equity curve (LSTM).}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\linewidth]{step3c_equity_cnn_gaf.png}
+\caption{Step 3c aggregated walk-forward equity curve (CNN on GAF).}
+\end{figure}
+
+\subsection{Step 3d. Comparison of Step 3b and Step 3c; has overfitting disappeared?}
+
+\input{images/step3d.tex}
+
+\section{Conclusion and Practical Takeaways}
+
+\input{images/conclusion.tex}
+
+\section{Works Cited (MLA)}
+
+\begin{list}{}{\setlength{\leftmargin}{0.5in}\setlength{\itemindent}{-0.5in}\setlength{\itemsep}{0.6em}}
+\item Bailey, David H., Jonathan M. Borwein, Marcos L\'opez de Prado, and Qiji Jim Zhu. ``The Probability of Backtest Overfitting.'' \emph{The Journal of Computational Finance}, vol. 20, no. 4, 2017, pp. 39--69. \emph{doi:}10.21314/JCF.2016.322.
+
+\item Gu, Shihao, Bryan Kelly, and Dacheng Xiu. ``Empirical Asset Pricing via Machine Learning.'' \emph{The Review of Financial Studies}, vol. 33, no. 5, 2020, pp. 2223--2273. \emph{doi:}10.1093/rfs/hhaa009.
+
+\item Hochreiter, Sepp, and J\"urgen Schmidhuber. ``Long Short-Term Memory.'' \emph{Neural Computation}, vol. 9, no. 8, 1997, pp. 1735--1780. \emph{doi:}10.1162/neco.1997.9.8.1735.
+
+\item LeCun, Yann, L\'eon Bottou, Yoshua Bengio, and Patrick Haffner. ``Gradient-Based Learning Applied to Document Recognition.'' \emph{Proceedings of the IEEE}, vol. 86, no. 11, 1998, pp. 2278--2324. \emph{doi:}10.1109/5.726791.
+
+\item L\'opez de Prado, Marcos. \emph{Advances in Financial Machine Learning}. John Wiley \& Sons, 2018.
+
+\item Wang, Zhiguang, and Tim Oates. ``Imaging Time-Series to Improve Classification and Imputation.'' \emph{arXiv}, 1 June 2015, arXiv:1506.00327. \emph{doi:}10.48550/arXiv.1506.00327.
+
+\item WorldQuant University. \emph{MScFE 642 Deep Learning for Finance: Group Work Project \#3}. WorldQuant University, 2022.
+\end{list}
+
+\end{document}

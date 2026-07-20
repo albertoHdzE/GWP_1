@@ -1,0 +1,8 @@
+\begin{itemize}
+\item Walk-forward evaluation is materially harder than a single split because it exposes the model to regime changes and repeated re-training, which typically reduces stability.
+\item Comparing Step 2 (leaky scaling) to Step 3 (fold-specific scaling + purging + embargo) shows how leakage can inflate backtest performance; the Step 3 results are the preferred estimate of deployable performance.
+\item Under leakage-reduced testing, the strongest configuration in this run is \textbf{lstm} in \textbf{Step 3b} with Sharpe=1.253, TotalRet=0.996, MaxDD=-0.192.
+\item Practical deployment should add position sizing, transaction-cost stress tests, and a strict research protocol (no tuning on test folds) to reduce the probability of backtest overfitting (L\'opez de Prado; Bailey et al.).
+\item In broader asset-pricing contexts, neural networks and other ML methods can add economic value, but only under careful out-of-sample evaluation (Gu, Kelly, and Xiu).
+\item If performance is only marginal after leakage reduction, prioritize robustness (simpler models, fewer degrees of freedom, and longer test windows) over headline returns.
+\end{itemize}

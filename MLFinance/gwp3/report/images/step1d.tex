@@ -1,0 +1,14 @@
+Trading rule: go long when $\hat p(\text{up})\ge 0.5$, otherwise short; transaction costs are 5.0 bps per unit turnover.
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{lrrrrrr}
+\toprule
+Model & Acc & AUC & Sharpe & TotalRet & MaxDD & HitRate\\
+\midrule
+mlp & 0.580 & 0.495 & 1.271 & 0.526 & -0.192 & 0.580 \\
+lstm & 0.585 & 0.474 & 1.417 & 0.606 & -0.192 & 0.585 \\
+cnn\_gaf & 0.584 & 0.521 & 1.315 & 0.548 & -0.140 & 0.575 \\
+\bottomrule
+\end{tabular}
+\end{table}

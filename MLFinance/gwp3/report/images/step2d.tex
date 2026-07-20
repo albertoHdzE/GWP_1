@@ -1,0 +1,31 @@
+Step 2a (500/500) uses longer test windows and fewer model re-fits than Step 2b (500/100), which uses shorter test windows and more frequent re-training. Under leaky preprocessing, repeated short-horizon evaluation can amplify backtest over-optimism (L\'opez de Prado; Bailey et al.).
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{lrrrccc}
+\toprule
+Model & Acc(2a) & Acc(2b) & $\Delta$ & AUC(2a) & AUC(2b) & $\Delta$\\
+\midrule
+mlp & 0.536 & 0.546 & +0.010 & 0.511 & 0.503 & -0.008 \\
+lstm & 0.543 & 0.536 & -0.006 & 0.506 & 0.485 & -0.021 \\
+cnn\_gaf & 0.545 & 0.556 & +0.011 & 0.504 & 0.522 & +0.019 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{lrrrccc}
+\toprule
+Model & Sharpe(2a) & Sharpe(2b) & $\Delta$ & TotalRet(2a) & TotalRet(2b) & $\Delta$\\
+\midrule
+mlp & 0.746 & 0.547 & -0.200 & 0.567 & 0.090 & -0.477 \\
+lstm & 1.174 & 0.148 & -1.026 & 1.098 & 0.005 & -1.093 \\
+cnn\_gaf & 1.049 & 0.370 & -0.679 & 0.927 & 0.051 & -0.875 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+If Step 2 performance is materially higher than Step 3 after leakage reduction, that pattern is consistent with backtest overfitting driven by leakage.

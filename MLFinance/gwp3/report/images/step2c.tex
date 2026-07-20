@@ -1,0 +1,14 @@
+Walk-forward backtests (non-anchored) are evaluated under two regimes: 500/500 (Step 2a) and 500/100 (Step 2b). Step 2 keeps leaky preprocessing (global scaling), which can increase the probability of selecting or reporting over-optimistic backtests (L\'opez de Prado; Bailey et al.).
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{lrrrccc}
+\toprule
+Model & Sharpe(1) & Sharpe(2a) & Sharpe(2b) & TotalRet(1) & TotalRet(2a) & TotalRet(2b)\\
+\midrule
+mlp & 1.271 & 0.746 & 0.547 & 0.526 & 0.567 & 0.090 \\
+lstm & 1.417 & 1.174 & 0.148 & 0.606 & 1.098 & 0.005 \\
+cnn\_gaf & 1.315 & 1.049 & 0.370 & 0.548 & 0.927 & 0.051 \\
+\bottomrule
+\end{tabular}
+\end{table}

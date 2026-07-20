@@ -1,0 +1,28 @@
+To assess whether Step 2 benefited from leakage-driven overfitting, we compare Step 2 (leaky) to Step 3 (leakage reduced) under matched walk-forward settings.
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{lrrrccc}
+\toprule
+Model & Sharpe(2a) & Sharpe(3b) & $\Delta$ & Sharpe(2b) & Sharpe(3c) & $\Delta$\\
+\midrule
+mlp & 0.746 & 0.367 & -0.379 & 0.547 & 0.779 & +0.232 \\
+lstm & 1.174 & 1.253 & +0.079 & 0.148 & 0.738 & +0.589 \\
+cnn\_gaf & 1.049 & 1.186 & +0.137 & 0.370 & 0.613 & +0.244 \\
+\bottomrule
+\end{tabular}
+\end{table}
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{lrrrccc}
+\toprule
+Model & TotalRet(2a) & TotalRet(3b) & $\Delta$ & TotalRet(2b) & TotalRet(3c) & $\Delta$\\
+\midrule
+mlp & 0.567 & 0.182 & -0.384 & 0.090 & 0.070 & -0.020 \\
+lstm & 1.098 & 0.996 & -0.102 & 0.005 & 0.065 & +0.060 \\
+cnn\_gaf & 0.927 & 0.919 & -0.008 & 0.051 & 0.052 & +0.001 \\
+\bottomrule
+\end{tabular}
+\end{table}
+If Sharpe and total return systematically drop when moving from Step 2 to Step 3 (especially under matched windows), this is consistent with leakage-driven over-optimism in Step 2 (L\'opez de Prado; Bailey et al.).
